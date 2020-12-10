@@ -592,7 +592,7 @@ inline bool ks_io_string_binary(ks_io* io, const ks_io_funcs* funcs, ks_array_da
         else {
             len = seek = array.length;
         }
-
+        if(io->seek + len >= io->str->length) return false;
         ks_string_set_n(str, len, io->str->data + io->seek);
         io->seek += seek;
     }
