@@ -491,8 +491,18 @@ inline bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_object_d
               ks_io_print_endl(io, serialize))) return false;
     } else {
         for(;;){
-            objfunc(io, funcs, obj.data, offset);
+            u32 readp = objfunc(io, funcs, obj.data, offset);
             if( ks_io_text(io, "}", serialize)) break;
+            // if unknown property skip
+            if(readp == 0){
+                i32 br = 0;
+                do{
+                    io->seek ++;
+                    if(io->str->data[io->seek] == '{') br++;
+                    else if(io->str->data[io->seek] == '}') br--;
+                }while(io->str->data[io->seek] != ',' || br != 0);
+                io->seek++;
+            }
         }
         io->indent--;
         if(!(io->indent == 0 || ks_io_fixed_text(io, ",", serialize))) return false;
