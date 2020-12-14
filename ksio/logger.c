@@ -1,14 +1,15 @@
 #include "logger.h"
+#include "types.h"
+#include <malloc.h>
 
-
-inline int ks_log(int type, const char* message, ...){
+KS_INLINE int ks_log(int type, const char* message, ...){
     const unsigned pre_size = sizeof ("Warning : ");
     const char* pre[NUM_KS_LOG_TYPES]= {
         "Info    : ",
         "Warning : ",
         "Error   : "
     };
-    char str[pre_size + strlen(message) + 3];
+    char* str = alloca(pre_size + strlen(message) + 3);
     snprintf(str, sizeof(str), "%s%s\n",pre[type], message);
     va_list va;
     va_start(va, message);

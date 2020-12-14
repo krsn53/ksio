@@ -215,7 +215,7 @@ ks_value    ks_val_ptr                              (void* ptr, ks_value_type ty
     const ks_io_funcs * __FUNCS = funcs; \
     bool __SERIALIZE = serialize; \
     u32 __INDEX = offset; \
-    type * __OBJECT = obj + offset*sizeof(type); \
+    type * __OBJECT = (type*)((char*)obj + offset*sizeof(type)); \
     (void)__INDEX;
 
 #define ks_end_props }
