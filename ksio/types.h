@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
-
+#if defined(_WIN32)
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
 
 //define int type
 typedef int64_t i64;

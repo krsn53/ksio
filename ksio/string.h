@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "./types.h"
 
 typedef struct ks_string{
     u32     length;

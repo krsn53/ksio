@@ -1,6 +1,4 @@
 #include "logger.h"
-#include "types.h"
-#include <malloc.h>
 
 KS_INLINE int ks_log(int type, const char* message, ...){
     const unsigned pre_size = sizeof ("Warning : ");

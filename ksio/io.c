@@ -1,7 +1,6 @@
 #include "io.h"
 #include <stdarg.h>
 #include <stdlib.h>
-#include <malloc.h>
 
 ks_io* ks_io_new(){
     ks_io* ret = malloc(sizeof(ks_io));
