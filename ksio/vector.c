@@ -74,3 +74,7 @@ KS_INLINE void ks_vector_remove_base(void** data, u32 type_size, u32*length, u32
 
     ks_vector_pop_base(data, type_size, length);
 }
+
+KS_INLINE void ks_vector_free_base(void** data){
+    free(*data);
+}
