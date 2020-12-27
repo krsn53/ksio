@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+
 #if defined(_WIN32)
 #include <malloc.h>
 #else

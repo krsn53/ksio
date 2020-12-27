@@ -7,8 +7,9 @@ KS_INLINE int ks_log(int type, const char* message, ...){
         "Warning : ",
         "Error   : "
     };
-    char* str = alloca(pre_size + strlen(message) + 3);
-    snprintf(str, sizeof(str), "%s%s\n",pre[type], message);
+    u32 size = pre_size + strlen(message) + 3;
+    char* str = alloca(size);
+    snprintf(str, size, "%s%s\n",pre[type], message);
     va_list va;
     va_start(va, message);
     int ret =vprintf(str, va);

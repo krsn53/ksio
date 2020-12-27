@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <memory.h>
 
 enum ks_log_types{
     KS_LOG_INFO,

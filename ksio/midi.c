@@ -225,6 +225,7 @@ ks_midi_file* ks_midi_file_conbine_tracks(ks_midi_file* file){
 
     for(u32 i=0; i<file->num_tracks; i++){
         for(u32 j=0; j<file->tracks[i].num_events; j++){
+            //end of track
             if(file->tracks[i].events[j].status == 0xff &&
             file->tracks[i].events[j].message.meta.type == 0x2f){
                 end_time = MAX(end_time, file->tracks[i].events[j].time);
