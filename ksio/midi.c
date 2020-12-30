@@ -55,6 +55,8 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_propert
 ks_io_begin_custom_func(ks_midi_event)
     ks_func_prop(ks_io_variable_length_number, ks_prop_u32(delta));
 
+    static i8 channel;
+
     ks_u8(status);
     switch (ks_access(status)) {
         //SysEx
@@ -87,14 +89,37 @@ ks_io_begin_custom_func(ks_midi_event)
             ks_arr_u8(message.data);
             break;
         default:
+            if(!__SERIALIZE){
+                if(__INDEX == 0){
+                    channel = -1;
+                }
+                if(channel == -1 && (ks_access(status) >> 4) == 0x9){
+                    channel = ks_access(status) & 0x0f;
+                }
+            }
+
             switch (ks_access(status) >> 4) {
             case 0xc:
             case 0xd:
                 ks_u8(message.data[0]);
                 break;
-            default:
+            case 0x8:
+            case 0x9:
+            case 0xa:
+            case 0xb:
+            case 0xe:
                  ks_arr_u8(message.data);
                 break;
+            default:
+                if(!__SERIALIZE && channel != -1){
+                    ks_access(message.data[0]) = ks_access(status);
+                    ks_access(status) = 0x90 + channel;
+                    ks_u8(message.data[1]);
+                }
+                else {
+                    ks_error("Detected invalid status bit : %d", ks_access(status));
+                    return false;
+                }
             }
     }
 ks_io_end_custom_func(ks_midi_event)
@@ -108,7 +133,7 @@ ks_io_begin_custom_func(ks_midi_track)
     } else {
         ks_access(num_events) = 0;
 
-        ks_array_data arr = ks_prop_arr_data_len(ks_access(length) / 4, events, ks_val_obj(events, ks_midi_event), false);
+        ks_array_data arr = ks_prop_arr_data_len(ks_access(length) / 3, events, ks_val_obj(events, ks_midi_event), false);
 
         if(!ks_io_array_begin(__IO, __FUNCS, &arr, 0, __SERIALIZE)) return false;
 
@@ -121,6 +146,7 @@ ks_io_begin_custom_func(ks_midi_track)
             }
             ks_access(num_events) ++;
         }
+
 
         ks_access(events) = realloc(ks_access(events), sizeof(ks_midi_event)*ks_access(num_events));
 
@@ -135,8 +161,6 @@ ks_io_begin_custom_func(ks_midi_file)
     ks_u16(num_tracks);
     ks_u16(resolution);
     ks_arr_obj_len(tracks, ks_midi_track, ks_access(num_tracks));
-
-    ks_midi_file_calc_time(__OBJECT);
 ks_io_end_custom_func(ks_midi_file)
 
 static void copy_midi_event(ks_midi_event* dest, const ks_midi_event* src){
@@ -243,9 +267,9 @@ ks_midi_file* ks_midi_file_conbine_tracks(ks_midi_file* file){
         .message.meta.type = 0x2f,
         .message.meta.length = 0,
         .time = end_time,
-        .delta = 0,
+        .delta = end_time - ret->tracks[0].events[e-1].time,
     };
-    ret->tracks[0].length += 1 + 3; // 1 delta bit + 3 event bits
+    ret->tracks[0].length += calc_delta_bits(ret->tracks[0].events[e].delta) + 3; // 1 delta bit + 3 event bits
 
     qsort(ret->tracks->events, num_events, sizeof(ks_midi_event), compare_midi_event_time);
 
