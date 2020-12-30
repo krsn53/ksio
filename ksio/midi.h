@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ksio/io.h>
+#include "./io.h"
 
 /**
   * @struct ks_midi_event
