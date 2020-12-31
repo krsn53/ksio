@@ -1,11 +1,8 @@
 #pragma once
 
-#include "./io.h"
+#include "../io.h"
 
-/**
-  * @struct ks_midi_event
-  * @brief Midi event data
-*/
+
 typedef struct ks_midi_event{
     u64 time;
     u32 delta;
@@ -27,10 +24,6 @@ typedef struct ks_midi_event{
     }message;
 } ks_midi_event;
 
-/**
-  * @struct ks_midi_track
-  * @brief Midi track data
-*/
 typedef struct ks_midi_track{
     //chunk type MTrk
     u32             length;
@@ -38,10 +31,6 @@ typedef struct ks_midi_track{
     ks_midi_event   * events;
 } ks_midi_track;
 
-/**
-  * @struct ks_midi_file
-  * @brief Midi file data
-*/
 typedef struct ks_midi_file{
     // chunk type MThd
     u32             length;
