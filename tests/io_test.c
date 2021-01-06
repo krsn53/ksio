@@ -48,6 +48,7 @@ bool Test_equals(const Test *t1, const Test *t2){
 ks_io_decl_custom_func(Test);
 
 ks_io_begin_custom_func(Test)
+    ks_magic_number("TEST");
     ks_u8(u8);
     ks_u16(u16);
     ks_u32(u32);

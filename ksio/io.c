@@ -208,7 +208,6 @@ KS_INLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u3
             p = *u;
             break;
         }
-        case KS_VALUE_MAGIC_NUMBER:
         case KS_VALUE_U32:
         {
             u32 *u = v.u32v;
@@ -303,7 +302,8 @@ KS_INLINE bool ks_io_property(ks_io* io, const ks_io_funcs* funcs,  ks_property 
 }
 
 KS_INLINE bool ks_io_magic_number(ks_io* io, const ks_io_funcs* funcs, const char* data){
-    ks_value  val={.ptr={.str = data}, .type = KS_VALUE_MAGIC_NUMBER};
+    ks_magic_number_data m = { .length = strlen(data), .str = data };
+    ks_value  val={.ptr={.mn=&m}, .type = KS_VALUE_MAGIC_NUMBER};
     return funcs->value(io, funcs, val, 0);
 }
 
@@ -429,7 +429,7 @@ KS_INLINE bool ks_io_value_clike(ks_io* io, const ks_io_funcs* funcs, ks_value v
     switch(value.type){
     case KS_VALUE_MAGIC_NUMBER:
         ks_io_print_indent(io,'\t', serialize);
-        return ks_io_text(io, "// Magic number : ", serialize) && ks_io_text(io, value.ptr.str, serialize) && ks_io_print_endl(io, serialize);
+        return ks_io_text(io, "// Magic number : ", serialize) && ks_io_text(io, value.ptr.mn->str, serialize) && ks_io_print_endl(io, serialize);
     default:
         break;
     }
@@ -646,7 +646,7 @@ KS_INLINE bool ks_io_string_binary(ks_io* io, const ks_io_funcs* funcs, ks_array
         else {
             len = seek = array.length;
         }
-        if(io->seek + len >= io->str->length) return false;
+        if(io->seek + len > io->str->length) return false;
         ks_string_set_n(str, len, io->str->data + io->seek);
         io->seek += seek;
     }
@@ -665,7 +665,7 @@ KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_funcs* funcs, ks_value 
     switch (value.type) {
     case KS_VALUE_MAGIC_NUMBER:{
         if(!serialize){
-            if(memcmp(value.ptr.str, io->str->data + io->seek, 4) != 0){
+            if(memcmp(value.ptr.mn->str, io->str->data + io->seek, value.ptr.mn->length) != 0){
                 char c[5] = { 0 };
                 memcpy(c, io->str->data + io->seek, 4);
                 ks_error("Excepted magic number \"%s\", detected \"%s\"", value.ptr.str, c);
@@ -673,7 +673,7 @@ KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_funcs* funcs, ks_value 
             }
             io->seek += 4;
         } else {
-            ks_string_add_n(io->str, 4, value.ptr.str);
+            ks_string_add_n(io->str, value.ptr.mn->length, value.ptr.mn->str);
         }
 
         break;
