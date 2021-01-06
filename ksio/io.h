@@ -27,6 +27,10 @@ typedef enum ks_value_type{
     KS_VALUE_U32,
     KS_VALUE_U16,
     KS_VALUE_U8,
+    KS_VALUE_I64,
+    KS_VALUE_I32,
+    KS_VALUE_I16,
+    KS_VALUE_I8,
     KS_VALUE_STRING_ELEM,
     KS_VALUE_OBJECT,
     KS_VALUE_ARRAY,
@@ -50,6 +54,10 @@ typedef union ks_value_ptr{
     u16             *u16v;
     u32             *u32v;
     u64             *u64v;
+    i8              *i8v;
+    i16             *i16v;
+    i32             *i32v;
+    i64             *i64v;
     const char      *str;
     char            *ch;
     ks_array_data   *arr;
@@ -265,22 +273,39 @@ ks_property ks_prop_v(void *name, ks_value value);
 #define ks_val_obj(var, type)               ks_val_ptr(ks_arr_type(ks_object_data, ks_prop_obj_data(var, type)), KS_VALUE_OBJECT)
 
 #define ks_val_str_elem(elem)               ks_val(elem, KS_VALUE_STRING_ELEM)
+
 #define ks_val_u64(elem)                    ks_val(elem, KS_VALUE_U64)
 #define ks_val_u32(elem)                    ks_val(elem, KS_VALUE_U32)
 #define ks_val_u16(elem)                    ks_val(elem, KS_VALUE_U16)
 #define ks_val_u8(elem)                     ks_val(elem, KS_VALUE_U8)
 
+#define ks_val_i64(elem)                    ks_val(elem, KS_VALUE_I64)
+#define ks_val_i32(elem)                    ks_val(elem, KS_VALUE_I32)
+#define ks_val_i16(elem)                    ks_val(elem, KS_VALUE_I16)
+#define ks_val_i8(elem)                     ks_val(elem, KS_VALUE_I8)
+
 #define ks_prop_u64_as(name, var)           ks_prop_f(name, var, KS_VALUE_U64)
 #define ks_prop_u32_as(name, var)           ks_prop_f(name, var, KS_VALUE_U32)
 #define ks_prop_u16_as(name, var)           ks_prop_f(name, var, KS_VALUE_U16)
 #define ks_prop_u8_as(name, var)            ks_prop_f(name, var, KS_VALUE_U8)
-#define ks_prop_obj_as(name, type, var)     ks_prop_v(name, ks_val_obj( var, type ))
 
+#define ks_prop_i64_as(name, var)           ks_prop_f(name, var, KS_VALUE_I64)
+#define ks_prop_i32_as(name, var)           ks_prop_f(name, var, KS_VALUE_I32)
+#define ks_prop_i16_as(name, var)           ks_prop_f(name, var, KS_VALUE_I16)
+#define ks_prop_i8_as(name, var)            ks_prop_f(name, var, KS_VALUE_I8)
+
+#define ks_prop_obj_as(name, type, var)     ks_prop_v(name, ks_val_obj( var, type ))
 
 #define ks_prop_u64(name)                   ks_prop_u64_as(#name, name)
 #define ks_prop_u32(name)                   ks_prop_u32_as(#name, name)
 #define ks_prop_u16(name)                   ks_prop_u16_as(#name, name)
 #define ks_prop_u8(name)                    ks_prop_u8_as(#name, name)
+
+#define ks_prop_i64(name)                   ks_prop_i64_as(#name, name)
+#define ks_prop_i32(name)                   ks_prop_i32_as(#name, name)
+#define ks_prop_i16(name)                   ks_prop_i16_as(#name, name)
+#define ks_prop_i8(name)                    ks_prop_i8_as(#name, name)
+
 #define ks_prop_obj(name, type)             ks_prop_obj_as(#name, type, name)
 
 #define ks_func_prop(func, prop)        if(! func ( __IO, __FUNCS, prop,  __SERIALIZE )) return false
@@ -308,20 +333,33 @@ ks_property ks_prop_v(void *name, ks_value value);
 
 #define ks_prop_arr_as(name, var, value)    ks_prop_v(name, ks_val_arr_len_fixed( ks_arr_size(var), var, value, true) )
 #define ks_prop_arr(name, value)            ks_prop_arr_as(#name, name, value)
+#define ks_prop_arr_obj(name, type)         ks_prop_arr(name, ks_val_obj(name, type))
+#define ks_prop_str(name)                   ks_prop_arr(name, ks_val_str_elem(name))
+
 #define ks_prop_arr_u64(name)               ks_prop_arr(name, ks_val_u64(name))
 #define ks_prop_arr_u32(name)               ks_prop_arr(name, ks_val_u32(name))
 #define ks_prop_arr_u16(name)               ks_prop_arr(name, ks_val_u16(name))
 #define ks_prop_arr_u8(name)                ks_prop_arr(name, ks_val_u8(name))
-#define ks_prop_arr_obj(name, type)         ks_prop_arr(name, ks_val_obj(name, type))
-#define ks_prop_str(name)                   ks_prop_arr(name, ks_val_str_elem(name))
+
+#define ks_prop_arr_i64(name)               ks_prop_arr(name, ks_val_i64(name))
+#define ks_prop_arr_i32(name)               ks_prop_arr(name, ks_val_i32(name))
+#define ks_prop_arr_i16(name)               ks_prop_arr(name, ks_val_i16(name))
+#define ks_prop_arr_i8(name)                ks_prop_arr(name, ks_val_i8(name))
+
 
 #define ks_prop_arr_len(name, len, value)       ks_prop_v(#name, ks_val_arr_len_fixed( len, name, value, false) )
+#define ks_prop_arr_obj_len(name, type, len)    ks_prop_arr_len(name, len, ks_val_obj(name, type))
+#define ks_prop_str_len(name, len)              ks_prop_arr_len(name, len, ks_val_str_elem(name))
+
 #define ks_prop_arr_u64_len(name, len)          ks_prop_arr_len(name, len, ks_val_u64(name))
 #define ks_prop_arr_u32_len(name, len)          ks_prop_arr_len(name, len, ks_val_u32(name))
 #define ks_prop_arr_u16_len(name, len)          ks_prop_arr_len(name, len, ks_val_u16(name))
 #define ks_prop_arr_u8_len(name, len)           ks_prop_arr_len(name, len, ks_val_u8(name))
-#define ks_prop_arr_obj_len(name, type, len)    ks_prop_arr_len(name, len, ks_val_obj(name, type))
-#define ks_prop_str_len(name, len)              ks_prop_arr_len(name, len, ks_val_str_elem(name))
+
+#define ks_prop_arr_i64_len(name, len)          ks_prop_arr_len(name, len, ks_val_i64(name))
+#define ks_prop_arr_i32_len(name, len)          ks_prop_arr_len(name, len, ks_val_i32(name))
+#define ks_prop_arr_i16_len(name, len)          ks_prop_arr_len(name, len, ks_val_i16(name))
+#define ks_prop_arr_i8_len(name, len)           ks_prop_arr_len(name, len, ks_val_i8(name))
 
 
 #define ks_p(prop)                          __RETURN += ks_io_property(__IO, __FUNCS, prop, __SERIALIZE) ? 1 : 0
@@ -330,19 +368,37 @@ ks_property ks_prop_v(void *name, ks_value value);
 #define ks_u32(name)                        ks_p(ks_prop_u32(name))
 #define ks_u16(name)                        ks_p(ks_prop_u16(name))
 #define ks_u8(name)                         ks_p(ks_prop_u8(name))
+
+#define ks_i64(name)                        ks_p(ks_prop_i64(name))
+#define ks_i32(name)                        ks_p(ks_prop_i32(name))
+#define ks_i16(name)                        ks_p(ks_prop_i16(name))
+#define ks_i8(name)                         ks_p(ks_prop_i8(name))
+
 #define ks_obj(name, type)                  ks_p(ks_prop_obj(name, type))
 
 #define ks_arr_u64(name)                    ks_p(ks_prop_arr_u64(name))
 #define ks_arr_u32(name)                    ks_p(ks_prop_arr_u32(name))
 #define ks_arr_u16(name)                    ks_p(ks_prop_arr_u16(name))
 #define ks_arr_u8(name)                     ks_p(ks_prop_arr_u8(name))
+
+#define ks_arr_i64(name)                    ks_p(ks_prop_arr_i64(name))
+#define ks_arr_i32(name)                    ks_p(ks_prop_arr_i32(name))
+#define ks_arr_i16(name)                    ks_p(ks_prop_arr_i16(name))
+#define ks_arr_i8(name)                     ks_p(ks_prop_arr_i8(name))
+
 #define ks_arr_obj(name, type)              ks_p(ks_prop_arr_obj(name, type))
 #define ks_str(name)                        ks_p(ks_prop_str(name))
 
 #define ks_arr_u64_len(name, len)           ks_p(ks_prop_arr_u64_len(name, len))
 #define ks_arr_u32_len(name, len)           ks_p(ks_prop_arr_u32_len(name, len))
-#define ks_arr_u16_len(name, len)           ks_p( ks_prop_arr_u16_len(name, len))
+#define ks_arr_u16_len(name, len)           ks_p(ks_prop_arr_u16_len(name, len))
 #define ks_arr_u8_len(name, len)            ks_p(ks_prop_arr_u8_len(name, len))
+
+#define ks_arr_i64_len(name, len)           ks_p(ks_prop_arr_i64_len(name, len))
+#define ks_arr_i32_len(name, len)           ks_p(ks_prop_arr_i32_len(name, len))
+#define ks_arr_i16_len(name, len)           ks_p(ks_prop_arr_i16_len(name, len))
+#define ks_arr_i8_len(name, len)            ks_p(ks_prop_arr_i8_len(name, len))
+
 #define ks_arr_obj_len(name, type, len)     ks_p(ks_prop_arr_obj_len(name, type, len))
 #define ks_str_p(name)                      ks_p(ks_prop_str_len(name, KS_STRING_UNKNOWN_LENGTH))
 #define ks_str_len(name, len)               ks_p(ks_prop_str_len(name, len))
