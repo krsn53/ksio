@@ -18,7 +18,6 @@ typedef struct ks_io{
 
 typedef struct ks_object_data ks_object_data;
 typedef struct ks_array_data ks_array_data;
-typedef struct ks_magic_number_data ks_magic_number_data;
 typedef struct ks_value ks_value;
 typedef union ks_value_ptr ks_value_ptr;
 
@@ -63,7 +62,6 @@ typedef union ks_value_ptr{
     char                    *ch;
     ks_array_data           *arr;
     ks_object_data          *obj;
-    ks_magic_number_data    *mn;
     void                    *data;
     void*                   *vpp;
 }ks_value_ptr;
@@ -79,10 +77,6 @@ typedef struct ks_property{
     ks_value        value;
 }ks_property;
 
-typedef struct ks_magic_number_data{
-    u32             length;
-    const char*     str;
-}ks_magic_number_data;
 
 typedef struct ks_array_data{
     u32             length;
