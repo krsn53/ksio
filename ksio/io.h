@@ -4,16 +4,31 @@
 #include <stdint.h>
 #include <stdlib.h> // NULL
 #include "./string.h"
+#include "./vector.h"
 #include "./logger.h"
 
 
 
 typedef struct ks_io_funcs ks_io_funcs;
 
+typedef union ks_io_userdata{
+    i64         val;
+    void*       ptr;
+    const char* str;
+} ks_io_userdata;
+
+typedef struct ks_io_userdata_list{
+     ks_io_userdata     *data;
+     u32                length;
+     u32                capacity;
+}ks_io_userdata_list;
+
+
 typedef struct ks_io{
-    ks_string   *str;
-    u32         seek;
-    u32         indent;
+    ks_string               *str;
+    ks_io_userdata_list     userdatas;
+    u32                     seek;
+    u32                     indent;
 }ks_io;
 
 typedef struct ks_object_data ks_object_data;
@@ -103,19 +118,22 @@ void        ks_io_read_string_len               (ks_io* io, u32 length, const ch
 void        ks_io_read_string                   (ks_io* io, const char* data);
 
 // io common
-bool        ks_io_property                      (ks_io* io, const ks_io_funcs* funcs,  ks_property prop, bool serialize);
-bool        ks_io_magic_number                  (ks_io* io, const ks_io_funcs* funcs, const char* data);
-bool        ks_io_string                        (ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, bool serialize);
-bool        ks_io_array_begin                   (ks_io* io, const ks_io_funcs* funcs, ks_array_data* array,  u32 offset, bool serialize);
-bool        ks_io_array_end                     (ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, u32 offset, bool serialize);
-bool        ks_io_array                         (ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, bool serialize);
-bool        ks_io_object                        (ks_io* io, const ks_io_funcs* funcs, ks_object_data obj, u32 offset, bool serialize);
+ks_io_userdata* ks_io_get_userdata              (ks_io* io, u32 from_top);
+bool            ks_io_push_userdata             (ks_io* io, ks_io_userdata userdata);
+bool            ks_io_pop_userdata              (ks_io* io);
+bool            ks_io_property                  (ks_io* io, const ks_io_funcs* funcs,  ks_property prop, bool serialize);
+bool            ks_io_magic_number              (ks_io* io, const ks_io_funcs* funcs, const char* data);
+bool            ks_io_string                    (ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, bool serialize);
+bool            ks_io_array_begin               (ks_io* io, const ks_io_funcs* funcs, ks_array_data* array,  u32 offset, bool serialize);
+bool            ks_io_array_end                 (ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, u32 offset, bool serialize);
+bool            ks_io_array                     (ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, bool serialize);
+bool            ks_io_object                    (ks_io* io, const ks_io_funcs* funcs, ks_object_data obj, u32 offset, bool serialize);
+bool            ks_io_value                     (ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 index, bool serialize);
 
 // text format utils
 bool        ks_io_print_indent                  (ks_io* io,  char indent, bool serialize);
 bool        ks_io_print_endl                    (ks_io* io, bool serialize);
 bool        ks_io_print_space                   (ks_io* io, bool serialize);
-bool        ks_io_value                         (ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 index, bool serialize);
 u32         ks_io_value_text                    (ks_io* io, ks_value_ptr v, ks_value_type type, u32 offset, bool serialize);
 u32         ks_io_prop_text                     (ks_io* io, const char* str, const char* delims, bool serialize);
 u32         ks_io_text_len                      (ks_io* io, u32 length, const char* str, bool serialize);

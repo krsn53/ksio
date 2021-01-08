@@ -4,6 +4,7 @@
 
 ks_io* ks_io_new(){
     ks_io* ret = malloc(sizeof(ks_io));
+    ks_vector_init(&ret->userdatas);
     ret->str = ks_string_new();
     ret->seek = 0;
     ret->indent = 0;
@@ -12,47 +13,18 @@ ks_io* ks_io_new(){
 }
 
 void ks_io_free(ks_io* io){
+    ks_vector_free(&io->userdatas);
     ks_string_free(io->str);
     free(io);
 }
 
 void ks_io_reset(ks_io* io){
+    ks_vector_clear(&io->userdatas);
     ks_string_clear(io->str);
     io->seek =0;
 }
 
-KS_INLINE bool ks_io_value(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 index, bool serialize){
-    bool ret = false;
 
-    switch (value.type) {
-    case KS_VALUE_U8:
-    case KS_VALUE_U16:
-    case KS_VALUE_U32:
-    case KS_VALUE_U64:
-    case KS_VALUE_I8:
-    case KS_VALUE_I16:
-    case KS_VALUE_I32:
-    case KS_VALUE_I64:
-        ret = funcs->value(io, funcs, value, index);
-        break;
-    case KS_VALUE_ARRAY:{
-        ks_array_data* array = value.ptr.arr;
-        if(array->value.type == KS_VALUE_STRING_ELEM) {
-            ret = ks_io_string(io, funcs, *array, index, serialize);
-        }
-        else {
-            ret = ks_io_array(io, funcs, *array, index, serialize);
-        }
-        break;
-    }
-    case KS_VALUE_OBJECT:
-        ret = ks_io_object(io, funcs, *(ks_object_data*)value.ptr.obj, index, serialize);
-        break;
-    default:
-        break;
-    }
-    return ret;
-}
 
 bool ks_io_begin(ks_io* io, const ks_io_funcs* funcs, bool serialize, ks_property prop){
     // Redundancy for KS_INLINE
@@ -117,6 +89,7 @@ KS_INLINE char* ks_char_array_fill(char v, u32 length, char c[]){
     c[length-1] = 0;
     return c;
 }
+
 
 KS_INLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u32 offset,  bool serialize){
     if(!serialize){
@@ -292,6 +265,21 @@ KS_INLINE u32 ks_io_fixed_text(ks_io* io, const char* str, bool serialize){
     return true;
 }
 
+KS_INLINE ks_io_userdata* ks_io_get_userdata (ks_io* io, u32 from_top){
+    if(io->userdatas.length <= from_top) return NULL;
+    return &io->userdatas.data[io->userdatas.length - 1 - from_top];
+}
+
+KS_INLINE bool ks_io_push_userdata (ks_io* io, ks_io_userdata userdata){
+    ks_vector_push(&io->userdatas, userdata);
+    return true;
+}
+
+KS_INLINE bool ks_io_pop_userdata(ks_io* io){
+    ks_vector_pop(&io->userdatas);
+    return true;
+}
+
 KS_INLINE bool ks_io_property(ks_io* io, const ks_io_funcs* funcs,  ks_property prop, bool serialize){
     u32 prop_length = funcs->key(io, funcs, prop.name,  true);
     if(prop_length == 0){
@@ -401,6 +389,39 @@ bool ks_io_array_end(ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, 
 
 KS_INLINE bool ks_io_object(ks_io* io, const ks_io_funcs* funcs, ks_object_data obj, u32 offset, bool serialize){
     return funcs->object(io, funcs, obj, offset);
+}
+
+KS_INLINE bool ks_io_value(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 index, bool serialize){
+    bool ret = false;
+
+    switch (value.type) {
+    case KS_VALUE_U8:
+    case KS_VALUE_U16:
+    case KS_VALUE_U32:
+    case KS_VALUE_U64:
+    case KS_VALUE_I8:
+    case KS_VALUE_I16:
+    case KS_VALUE_I32:
+    case KS_VALUE_I64:
+        ret = funcs->value(io, funcs, value, index);
+        break;
+    case KS_VALUE_ARRAY:{
+        ks_array_data* array = value.ptr.arr;
+        if(array->value.type == KS_VALUE_STRING_ELEM) {
+            ret = ks_io_string(io, funcs, *array, index, serialize);
+        }
+        else {
+            ret = ks_io_array(io, funcs, *array, index, serialize);
+        }
+        break;
+    }
+    case KS_VALUE_OBJECT:
+        ret = ks_io_object(io, funcs, *(ks_object_data*)value.ptr.obj, index, serialize);
+        break;
+    default:
+        break;
+    }
+    return ret;
 }
 
 KS_INLINE bool ks_io_key_clike(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, bool serialize){

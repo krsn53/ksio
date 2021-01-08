@@ -21,7 +21,7 @@ void    ks_vector_free_base         (void** data);
 #define ks_vector_clear_var(data, length)                                   ks_vector_clear_base(ks_vector_data(data), &length)
 #define ks_vector_push_var(data, length, capacity, var)                     ks_vector_push_base(ks_vector_data(data), &length, &capacity, &var)
 #define ks_vector_push_range_var(data, length, capacity, var_length, var)   ks_vector_push_range_base(ks_vector_data(data), &length, &capacity, var_length, var)
-#define ks_vector_pop_var(data, length)                                     ks_vector_pop(ks_vector_data(data), &length)
+#define ks_vector_pop_var(data, length)                                     ks_vector_pop_base(ks_vector_data(data), &length)
 #define ks_vector_resize_var(data, length, capacity, new_size)              ks_vector_resize_base(ks_vector_data(data), &length, &capacity, new_size)
 #define ks_vector_insert_var(data, length, capacity, index, obj)            ks_vector_insert_base(ks_vector_data(data), &length, &capacity, index, &obj)
 #define ks_vector_remove_var(data, length, index)                           ks_vector_remove_base(ks_vector_data(data), &length, index)

@@ -55,7 +55,9 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_propert
 ks_io_begin_custom_func(ks_midi_event)
     ks_func_prop(ks_io_variable_length_number, ks_prop_u32(delta));
 
-    static i8 channel;
+    if(!__SERIALIZE && __INDEX == 0){
+        ks_io_push_userdata(io, (ks_io_userdata){ .val = -1 });
+    }
 
     ks_u8(status);
     switch (ks_access(status)) {
@@ -74,6 +76,12 @@ ks_io_begin_custom_func(ks_midi_event)
             } else {
                  ks_arr_u8_len(message.meta.data, ks_access(message.meta.length));
             }
+            if(!__SERIALIZE){
+                if(ks_access(message.meta.type) == 0x2f){
+                    ks_io_pop_userdata(io);
+                }
+            }
+
             break;
        //midi event
         case 0xf1:
@@ -90,11 +98,9 @@ ks_io_begin_custom_func(ks_midi_event)
             break;
         default:
             if(!__SERIALIZE){
-                if(__INDEX == 0){
-                    channel = -1;
-                }
-                if(channel == -1 && (ks_access(status) >> 4) == 0x9){
-                    channel = ks_access(status) & 0x0f;
+                ks_io_userdata* ud = ks_io_get_userdata(io, 0);
+                if(ud->val == -1 && (ks_access(status) >> 4) == 0x9){
+                    ud->val = ks_access(status) & 0x0f;
                 }
             }
 
@@ -111,15 +117,18 @@ ks_io_begin_custom_func(ks_midi_event)
                  ks_arr_u8(message.data);
                 break;
             default:
-                if(!__SERIALIZE && channel != -1){
+            {
+                ks_io_userdata* ud = ks_io_get_userdata(io, 0);
+                if(!__SERIALIZE && ud->val != -1){
                     ks_access(message.data[0]) = ks_access(status);
-                    ks_access(status) = 0x90 + channel;
+                    ks_access(status) = 0x90 + ud->val;
                     ks_u8(message.data[1]);
                 }
                 else {
                     ks_error("Detected invalid status bit : %d", ks_access(status));
                     return false;
                 }
+            }
             }
     }
 ks_io_end_custom_func(ks_midi_event)
