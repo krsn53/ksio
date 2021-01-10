@@ -50,13 +50,13 @@ static KS_INLINE void print_type_value(ks_io* io, ks_value value){
 }
 #endif
 
-KS_INLINE bool ks_io_key_deleter(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_key_deleter(ks_io* io, const ks_io_methods* methods, const char* name, bool fixed, ks_io_serial_type serial_type){
     #if(KS_PRINT_DELETE_LOG)
         ks_io_push_state(io, (ks_io_userdata){.str = name});
     #endif
     return true;
 }
-KS_INLINE bool ks_io_string_deleter (ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string* str, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_string_deleter (ks_io* io, const ks_io_methods* methods, ks_array_data array, ks_string* str, ks_io_serial_type serial_type){
     if(!array.fixed_length && array.length != 0 &&  *array.value.ptr.vpp != NULL) {
         free(*array.value.ptr.vpp);
     }
@@ -72,13 +72,13 @@ KS_INLINE bool ks_io_string_deleter (ks_io* io, const ks_io_funcs* funcs, ks_arr
     #endif
     return true;
 }
-KS_INLINE bool ks_io_value_deleter  (ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_value_deleter  (ks_io* io, const ks_io_methods* methods, ks_value value, u32 offset,  ks_io_serial_type serial_type){
     #if(KS_PRINT_DELETE_LOG)
         if(value.type != KS_VALUE_MAGIC_NUMBER)ks_io_pop_state(io);
     #endif
     return true;
 }
-KS_INLINE bool ks_io_array_begin_deleter  (ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr,  ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_array_begin_deleter  (ks_io* io, const ks_io_methods* methods,  ks_array_data arr,  ks_io_serial_type serial_type){
     #if(KS_PRINT_DELETE_LOG)
         ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
         ks_io_text(io, "Enter to array(", KS_IO_SERIALIZER);
@@ -92,31 +92,20 @@ KS_INLINE bool ks_io_array_begin_deleter  (ks_io* io, const ks_io_funcs* funcs, 
     #endif
     return true;
 }
-KS_INLINE bool ks_io_array_elem_deleter(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_array_elem_deleter(ks_io* io,  const ks_io_methods* methods, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
     #if(KS_PRINT_DELETE_LOG)
         char array_indexed [16];
         snprintf(array_indexed, 10, "[%d]", index);
         ks_io_push_state(io, (ks_io_userdata){.str=array_indexed});
     #endif
-    ks_object_data obj;
-    if(!arr.fixed_length && arr.length != 0) {
-        if(arr.value.type == KS_VALUE_OBJECT){
-            obj = *arr.value.ptr.obj;
-            obj.data = *(void**)arr.value.ptr.obj->data;
-            arr.value.ptr.obj = &obj;
-        } else {
-             arr.value.ptr.data = *arr.value.ptr.vpp;
-        }
-
-    }
-    return ks_io_value(io, funcs, arr.value, index, serial_type);
+    return ks_io_value(io, methods, arr.value, index, serial_type);
 }
-KS_INLINE bool ks_io_array_end_deleter (ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr,  ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_array_end_deleter (ks_io* io, const ks_io_methods* methods,  ks_array_data arr,  ks_io_serial_type serial_type){
     if(!arr.fixed_length && arr.length != 0) {
         if(arr.value.type == KS_VALUE_OBJECT){
-            free(*(void**)arr.value.ptr.obj->data);
+            free(arr.value.ptr.obj->data);
         } else {
-            free(*arr.value.ptr.vpp);
+            free(arr.value.ptr.data);
         }
 
     }
@@ -137,7 +126,7 @@ KS_INLINE bool ks_io_array_end_deleter (ks_io* io, const ks_io_funcs* funcs,  ks
     #endif
     return true;
 }
-KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_methods* methods,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
     #if(KS_PRINT_DELETE_LOG)
         ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
         ks_io_text(io, "Enter to object(", KS_IO_SERIALIZER);
@@ -148,7 +137,7 @@ KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_funcs* funcs,  ks_ob
         ks_io_print_endl(io, KS_IO_SERIALIZER);
         io->indent ++;
     #endif
-    bool ret = obj.other(io, funcs, obj.data, offset);
+    bool ret = obj.other(io, methods, obj.data, offset);
     #if(KS_PRINT_DELETE_LOG)
         io->indent --;
         ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
@@ -158,4 +147,4 @@ KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_funcs* funcs,  ks_ob
     return ret;
 }
 
-ks_io_funcs_impl_other(deleter);
+ks_io_methods_impl_other(deleter);

@@ -69,23 +69,23 @@ int main ( void ){
 
     ks_io *io = ks_io_new();
     {
-        ks_io_begin_serialize(io, clike, ks_prop_root(test, Test));
+        ks_io_serialize_begin(io, clike, test, Test);
         printf("--- C like serialize test ---\n");
         printf("test2:\n%s", io->str->data);
 
         Test test2;
 
         printf("--- C like deserialize test ---\n");
-        ks_io_begin_deserialize(io, clike, ks_prop_root(test2, Test));
+        ks_io_deserialize_begin(io, clike, test2, Test);
         printf("result: test is equals test2 = %s\n", Test_equals(&test, &test2) ? "True" : "False");
-        ks_io_begin_serialize(io, clike, ks_prop_root(test2, Test));
+        ks_io_serialize_begin(io, clike, test2, Test);
         printf("%s", io->str->data);
         fflush(stdout);
-        ks_io_delete(io, ks_prop_root(test2, Test));
+        ks_io_delete(io, test2, Test);
     }
 
     {
-        ks_io_begin_serialize(io, binary_little_endian, ks_prop_root(test, Test));
+        ks_io_serialize_begin(io, binary_little_endian, test, Test);
         printf("\n--- binary little endian serialize test ---\ntest3:\n");
         for(u32 i=0; i< io->str->length; i++){
             printf("0x%02x, ", io->str->data[i]);
@@ -95,15 +95,15 @@ int main ( void ){
         Test test3;
 
         printf("--- binary little endian deserialize test ---\n");
-        ks_io_begin_deserialize(io, binary_little_endian, ks_prop_root(test3, Test));
+        ks_io_deserialize_begin(io, binary_little_endian, test3, Test);
         printf("result: test is equals test3 = %s\n", Test_equals(&test, &test3) ? "True" : "False");
 
-        ks_io_delete(io, ks_prop_root(test3, Test));
+        ks_io_delete(io, test3, Test);
     }
 
 
     {
-        ks_io_begin_serialize(io, binary_big_endian, ks_prop_root(test, Test));
+        ks_io_serialize_begin(io, binary_big_endian, test, Test);
         printf("\n--- binary big endian serialize test ---\ntest4:\n");
         for(u32 i=0; i< io->str->length; i++){
             printf("0x%02x, ", io->str->data[i]);
@@ -113,10 +113,10 @@ int main ( void ){
         Test test4;
 
         printf("--- binary big endian deserialize test ---\n");
-        ks_io_begin_deserialize(io, binary_big_endian, ks_prop_root(test4, Test));
+        ks_io_deserialize_begin(io, binary_big_endian, test4, Test);
         printf("result: test is equals test4 = %s\n", Test_equals(&test, &test4) ? "True" : "False");
 
-        ks_io_delete(io, ks_prop_root(test4, Test));
+        ks_io_delete(io, test4, Test);
     }
 
 #if(KS_PRINT_DELETE_LOG)

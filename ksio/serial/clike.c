@@ -197,7 +197,7 @@ KS_INLINE u32 ks_io_fixed_text(ks_io* io, const char* str, ks_io_serial_type ser
     return true;
 }
 
-KS_INLINE bool ks_io_key_clike(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_key_clike(ks_io* io, const ks_io_methods* methods, const char* name, bool fixed, ks_io_serial_type serial_type){
     ks_io_print_indent(io, '\t', serial_type);
 
     if(serial_type == KS_IO_DESERIALIZER){
@@ -218,7 +218,7 @@ KS_INLINE bool ks_io_key_clike(ks_io* io, const ks_io_funcs* funcs, const char* 
     return ret != 0;
 }
 
-KS_INLINE bool ks_io_value_clike(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_value_clike(ks_io* io, const ks_io_methods* methods, ks_value value, u32 offset,  ks_io_serial_type serial_type){
     switch(value.type){
     case KS_VALUE_MAGIC_NUMBER:
         ks_io_print_indent(io,'\t', serial_type);
@@ -233,7 +233,7 @@ KS_INLINE bool ks_io_value_clike(ks_io* io, const ks_io_funcs* funcs, ks_value v
     return ret != 0;
 }
 
-bool ks_io_string_clike(ks_io* io, const ks_io_funcs* funcs, ks_array_data array,ks_string*  str,  ks_io_serial_type serial_type){
+bool ks_io_string_clike(ks_io* io, const ks_io_methods* methods, ks_array_data array,ks_string*  str,  ks_io_serial_type serial_type){
     if(!ks_io_fixed_text(io, "\"", serial_type)) return false;
 
     if(serial_type == KS_IO_SERIALIZER){
@@ -250,7 +250,7 @@ bool ks_io_string_clike(ks_io* io, const ks_io_funcs* funcs, ks_array_data array
     return ks_io_fixed_text(io, "\"", serial_type) &&  ks_io_fixed_text(io, ",", serial_type) && ks_io_print_endl(io, serial_type);
 }
 
-KS_INLINE bool ks_io_array_begin_clike(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_array_begin_clike(ks_io* io, const ks_io_methods* methods,  ks_array_data arr, ks_io_serial_type serial_type){
     if(!arr.fixed_length){
         ks_io_fixed_text(io, "(", serial_type);
         switch (arr.value.type) {
@@ -297,14 +297,14 @@ KS_INLINE bool ks_io_array_begin_clike(ks_io* io, const ks_io_funcs* funcs,  ks_
     return ret;
 }
 
-KS_INLINE bool ks_io_array_elem_clike(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_array_elem_clike(ks_io* io,  const ks_io_methods* methods, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
      ks_io_print_indent(io,'\t', serial_type);
-    if(!ks_io_value(io, funcs, arr.value, index, serial_type)) return false;
+    if(!ks_io_value(io, methods, arr.value, index, serial_type)) return false;
 
     return true;
 }
 
-KS_INLINE bool ks_io_array_end_clike(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_array_end_clike(ks_io* io, const ks_io_methods* methods,  ks_array_data arr, ks_io_serial_type serial_type){
     io->indent--;
     return  ks_io_print_indent(io,'\t', serial_type)&&
             ks_io_fixed_text(io, "}", serial_type)  &&
@@ -312,7 +312,7 @@ KS_INLINE bool ks_io_array_end_clike(ks_io* io, const ks_io_funcs* funcs,  ks_ar
             ks_io_print_endl(io, serial_type) ;
 }
 
-KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_methods* methods,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
     if(! (ks_io_fixed_text(io, "{", serial_type)  &&
             ks_io_print_endl(io, serial_type))) return false;
 
@@ -320,7 +320,7 @@ KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_objec
 
     ks_object_func objfunc = serial_type == KS_IO_DESERIALIZER ? obj.deserializer : obj.serializer;
     if(serial_type == KS_IO_SERIALIZER){
-        if(! objfunc(io, funcs, obj.data, offset)) return false;
+        if(! objfunc(io, methods, obj.data, offset)) return false;
         io->indent--;
         if(! (ks_io_print_indent(io,'\t', serial_type)&&
               ks_io_fixed_text(io, "}", serial_type)  &&
@@ -328,7 +328,7 @@ KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_objec
               ks_io_print_endl(io, serial_type))) return false;
     } else {
         for(;;){
-            u32 readp = objfunc(io, funcs, obj.data, offset);
+            u32 readp = objfunc(io, methods, obj.data, offset);
             if( ks_io_text(io, "}", serial_type)) break;
             // if unknown property skip
             if(readp == 0){
@@ -348,4 +348,4 @@ KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_objec
     return true;
 }
 
-ks_io_funcs_impl_rw(clike)
+ks_io_methods_impl_rw(clike)

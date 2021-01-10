@@ -24,3 +24,4 @@ typedef struct ks_wave_file{
 
 
 ks_io_decl_custom_func(ks_wave_file);
+

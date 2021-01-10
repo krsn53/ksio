@@ -6,10 +6,10 @@
 #include "../serial/binary.h"
 #include "../serial/deleter.h"
 
-bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_property prop, ks_io_serial_type serial_type){
-    if(funcs != &binary_big_endian_serializer && funcs != & binary_big_endian_deserializer &&
-            funcs != &binary_little_endian_serializer && funcs != &binary_little_endian_deserializer) {
-        return ks_io_property(io, funcs, prop, serial_type);
+bool ks_io_variable_length_number(ks_io* io, const ks_io_methods*methods, ks_property prop, ks_io_serial_type serial_type){
+    if(methods != &binary_big_endian_serializer && methods != & binary_big_endian_deserializer &&
+            methods != &binary_little_endian_serializer && methods != &binary_little_endian_deserializer) {
+        return ks_io_property(io, methods, prop, serial_type);
     }
 
     if(serial_type == KS_IO_SERIALIZER){
@@ -32,7 +32,7 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_propert
         }
         for(; i>=0; i--){
             p.value.ptr.u8v =  &out[i];
-            if(!ks_io_value(io, funcs, p.value, 0, serial_type)) return false;
+            if(!ks_io_value(io, methods, p.value, 0, serial_type)) return false;
         }
 
         return true;
@@ -45,7 +45,7 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_propert
         u32 out=0;
 
         do{
-            if(!ks_io_value(io, funcs, p.value, 0, serial_type)) return false;
+            if(!ks_io_value(io, methods, p.value, 0, serial_type)) return false;
             out <<= 7;
             out |= in & 0x7f;
         }while(in >= 0x80);

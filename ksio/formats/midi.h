@@ -44,7 +44,7 @@ ks_io_decl_custom_func(ks_midi_event);
 ks_io_decl_custom_func(ks_midi_track);
 ks_io_decl_custom_func(ks_midi_file);
 
-bool                    ks_io_variable_length_number                (ks_io* io, const ks_io_funcs*funcs, ks_property prop, ks_io_serial_type serialize);
+bool                    ks_io_variable_length_number                (ks_io* io, const ks_io_methods*methods, ks_property prop, ks_io_serial_type serialize);
 ks_midi_file*           ks_midi_file_new                            ();
 void                    ks_midi_file_free                           (ks_midi_file* file);
 void                    ks_midi_file_calc_time                      (ks_midi_file* file);
