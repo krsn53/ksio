@@ -14,8 +14,8 @@ union endian_checker{
     int i;
 };
 
-KS_INLINE u32 ks_io_fixed_bin_len(ks_io* io, u32 length, const char* str, bool serialize){
-    if(!serialize){
+KS_INLINE u32 ks_io_fixed_bin_len(ks_io* io, u32 length, const char* str, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER){
         if(memcmp(io->str->data + io->seek, str, length) == 0){
             io->seek += length;
             return length;
@@ -28,18 +28,18 @@ KS_INLINE u32 ks_io_fixed_bin_len(ks_io* io, u32 length, const char* str, bool s
     return 1;
 }
 
-KS_INLINE u32 ks_io_fixed_bin(ks_io* io, const char* str, bool serialize){
-    if(!serialize){
-        return ks_io_fixed_bin_len(io, ks_string_first_c_of(io->str, io->seek, 0) + 1, str, serialize);
+KS_INLINE u32 ks_io_fixed_bin(ks_io* io, const char* str, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER){
+        return ks_io_fixed_bin_len(io, ks_string_first_c_of(io->str, io->seek, 0) + 1, str, serial_type);
     }
     else {
-        return ks_io_fixed_bin_len(io, strlen(str) + 1, str, serialize);
+        return ks_io_fixed_bin_len(io, strlen(str) + 1, str, serial_type);
     }
 
 }
 
-KS_INLINE bool ks_io_value_bin(ks_io* io, u32 length, char* c, bool swap_endian,  bool serialize){
-    if(!serialize){
+KS_INLINE bool ks_io_value_bin(ks_io* io, u32 length, char* c, bool swap_endian,  ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER){
         if(io->seek + length > io->str->length) {
             ks_error("Unexcepted file end");
             return false;
@@ -68,16 +68,16 @@ KS_INLINE bool ks_io_value_bin(ks_io* io, u32 length, char* c, bool swap_endian,
     return true;
 }
 
-KS_INLINE bool ks_io_key_binary(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, bool swap_endian, bool serialize){
+KS_INLINE bool ks_io_key_binary(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, bool swap_endian, ks_io_serial_type serial_type){
     if(fixed) {
         return true;
     }
-    u32 step = ks_io_fixed_bin(io, name, serialize);
+    u32 step = ks_io_fixed_bin(io, name, serial_type);
     return step != 0;
 }
 
-KS_INLINE bool ks_io_string_binary(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string* str, bool swap_endian, bool serialize){
-    if(!serialize){
+KS_INLINE bool ks_io_string_binary(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string* str, bool swap_endian, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER){
         u32 len, seek;
         if(array.length == KS_STRING_UNKNOWN_LENGTH){
             len = ks_string_first_c_of(io->str, io->seek, 0);
@@ -104,10 +104,10 @@ KS_INLINE bool ks_io_string_binary(ks_io* io, const ks_io_funcs* funcs, ks_array
 
 }
 
-KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_funcs* funcs, ks_value value,  u32 offset, bool swap_endian, bool serialize){
+KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_funcs* funcs, ks_value value,  u32 offset, bool swap_endian, ks_io_serial_type serial_type){
     switch (value.type) {
     case KS_VALUE_MAGIC_NUMBER:{
-        if(!serialize){
+        if(serial_type == KS_IO_DESERIALIZER){
             if(memcmp(value.ptr.str, io->str->data + io->seek, strlen(value.ptr.str)) != 0){
                 char c[5] = { 0 };
                 memcpy(c, io->str->data + io->seek, 4);
@@ -126,56 +126,56 @@ KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_funcs* funcs, ks_value 
             u64* u;
             char(* c)[sizeof(u64)];
         } v = {.u = value.ptr.u64v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     case KS_VALUE_U32:{
         union {
             u32* u;
             char(* c)[sizeof(u32)];
         } v = {.u = value.ptr.u32v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     case KS_VALUE_U16:{
         union {
             u16* u;
             char(* c)[sizeof(u16)];
         } v = {.u = value.ptr.u16v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     case KS_VALUE_U8:{
         union {
             u8* u;
             char(* c)[sizeof(u8)];
         } v = {.u = value.ptr.u8v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     case KS_VALUE_I64:{
         union {
             i64* u;
             char(* c)[sizeof(i64)];
         } v = {.u = value.ptr.i64v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     case KS_VALUE_I32:{
         union {
             i32* u;
             char(* c)[sizeof(i32)];
         } v = {.u = value.ptr.i32v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     case KS_VALUE_I16:{
         union {
             i16* u;
             char(* c)[sizeof(i16)];
         } v = {.u = value.ptr.i16v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     case KS_VALUE_I8:{
         union {
             i8* u;
             char(* c)[sizeof(i8)];
         } v = {.u = value.ptr.i8v + offset};
-        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serialize);
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
     }
     default:
         return false;
@@ -183,65 +183,65 @@ KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_funcs* funcs, ks_value 
     return true;
 }
 
-KS_INLINE bool ks_io_array_begin_binary(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool swap_endian, bool serialize){
+KS_INLINE bool ks_io_array_begin_binary(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool swap_endian, ks_io_serial_type serial_type){
     return true;
 }
 
-KS_INLINE bool ks_io_array_elem_binary(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, bool swap_endian, bool serialize){
-    return ks_io_value(io, funcs, arr.value, index, serialize);
+KS_INLINE bool ks_io_array_elem_binary(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, bool swap_endian, ks_io_serial_type serial_type){
+    return ks_io_value(io, funcs, arr.value, index, serial_type);
 }
-KS_INLINE bool ks_io_array_end_binary(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool swap_endian, bool serialize){
+KS_INLINE bool ks_io_array_end_binary(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool swap_endian, ks_io_serial_type serial_type){
     return true;
 }
 
-KS_INLINE bool ks_io_object_binary(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, bool swap_endian, bool serialize){
-    return (serialize ? obj.serializer : obj.deserializer)(io, funcs, obj.data, offset);
+KS_INLINE bool ks_io_object_binary(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, bool swap_endian, ks_io_serial_type serial_type){
+    return (serial_type == KS_IO_DESERIALIZER ? obj.deserializer : obj.serializer)(io, funcs, obj.data, offset);
 }
 
-KS_INLINE bool ks_io_key_binary_little_endian(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, bool serialize){
-    return ks_io_key_binary(io, funcs, name, fixed, !little_endian(), serialize);
+KS_INLINE bool ks_io_key_binary_little_endian(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, ks_io_serial_type serial_type){
+    return ks_io_key_binary(io, funcs, name, fixed, !little_endian(), serial_type);
 }
-KS_INLINE bool ks_io_value_binary_little_endian(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  bool serialize){
-    return ks_io_value_binary(io, funcs, value, offset, !little_endian(), serialize);
+KS_INLINE bool ks_io_value_binary_little_endian(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  ks_io_serial_type serial_type){
+    return ks_io_value_binary(io, funcs, value, offset, !little_endian(), serial_type);
 }
-KS_INLINE bool ks_io_string_binary_little_endian(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string* str, bool serialize){
-    return ks_io_string_binary(io, funcs, array, str, !little_endian(), serialize);
+KS_INLINE bool ks_io_string_binary_little_endian(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string* str, ks_io_serial_type serial_type){
+    return ks_io_string_binary(io, funcs, array, str, !little_endian(), serial_type);
 }
-KS_INLINE bool ks_io_array_begin_binary_little_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool serialize){
-    return ks_io_array_begin_binary(io, funcs, arr, !little_endian(), serialize);
+KS_INLINE bool ks_io_array_begin_binary_little_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
+    return ks_io_array_begin_binary(io, funcs, arr, !little_endian(), serial_type);
 }
-KS_INLINE bool ks_io_array_elem_binary_little_endian(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, bool serialize){
-    return ks_io_array_elem_binary(io, funcs, arr, index, !little_endian(), serialize);
+KS_INLINE bool ks_io_array_elem_binary_little_endian(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
+    return ks_io_array_elem_binary(io, funcs, arr, index, !little_endian(), serial_type);
 }
-KS_INLINE bool ks_io_array_end_binary_little_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool serialize){
-    return ks_io_array_end_binary(io, funcs, arr, !little_endian(), serialize);
+KS_INLINE bool ks_io_array_end_binary_little_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
+    return ks_io_array_end_binary(io, funcs, arr, !little_endian(), serial_type);
 }
-KS_INLINE bool ks_io_object_binary_little_endian(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset,  bool serialize){
-    return ks_io_object_binary(io, funcs, obj, offset, !little_endian(), serialize);
-}
-
-KS_INLINE bool ks_io_key_binary_big_endian(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, bool serialize){
-    return ks_io_key_binary(io, funcs, name, fixed, little_endian(), serialize);
-}
-KS_INLINE bool ks_io_value_binary_big_endian(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  bool serialize){
-    return ks_io_value_binary(io, funcs, value, offset, little_endian(), serialize);
-}
-KS_INLINE bool ks_io_string_binary_big_endian(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string*  str, bool serialize){
-    return ks_io_string_binary(io, funcs, array, str, little_endian(), serialize);
-}
-KS_INLINE bool ks_io_array_begin_binary_big_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool serialize){
-    return ks_io_array_begin_binary(io, funcs, arr, little_endian(), serialize);
-}
-KS_INLINE bool ks_io_array_elem_binary_big_endian(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, bool serialize){
-    return ks_io_array_elem_binary(io, funcs, arr, index, little_endian(), serialize);
-}
-KS_INLINE bool ks_io_array_end_binary_big_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool serialize){
-    return ks_io_array_end_binary(io, funcs, arr, little_endian(), serialize);
-}
-KS_INLINE bool ks_io_object_binary_big_endian(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, bool serialize){
-    return ks_io_object_binary(io, funcs, obj, offset, little_endian(), serialize);
+KS_INLINE bool ks_io_object_binary_little_endian(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset,  ks_io_serial_type serial_type){
+    return ks_io_object_binary(io, funcs, obj, offset, !little_endian(), serial_type);
 }
 
+KS_INLINE bool ks_io_key_binary_big_endian(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, ks_io_serial_type serial_type){
+    return ks_io_key_binary(io, funcs, name, fixed, little_endian(), serial_type);
+}
+KS_INLINE bool ks_io_value_binary_big_endian(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  ks_io_serial_type serial_type){
+    return ks_io_value_binary(io, funcs, value, offset, little_endian(), serial_type);
+}
+KS_INLINE bool ks_io_string_binary_big_endian(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string*  str, ks_io_serial_type serial_type){
+    return ks_io_string_binary(io, funcs, array, str, little_endian(), serial_type);
+}
+KS_INLINE bool ks_io_array_begin_binary_big_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
+    return ks_io_array_begin_binary(io, funcs, arr, little_endian(), serial_type);
+}
+KS_INLINE bool ks_io_array_elem_binary_big_endian(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
+    return ks_io_array_elem_binary(io, funcs, arr, index, little_endian(), serial_type);
+}
+KS_INLINE bool ks_io_array_end_binary_big_endian(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
+    return ks_io_array_end_binary(io, funcs, arr, little_endian(), serial_type);
+}
+KS_INLINE bool ks_io_object_binary_big_endian(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
+    return ks_io_object_binary(io, funcs, obj, offset, little_endian(), serial_type);
+}
 
-ks_io_funcs_impl(binary_little_endian)
-ks_io_funcs_impl(binary_big_endian)
+
+ks_io_funcs_impl_rw(binary_little_endian)
+ks_io_funcs_impl_rw(binary_big_endian)

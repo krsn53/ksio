@@ -26,15 +26,22 @@ void ks_io_reset(ks_io* io){
 
 
 
-bool ks_io_begin(ks_io* io, const ks_io_funcs* funcs, bool serialize, ks_property prop){
+bool ks_io_begin(ks_io* io, const ks_io_funcs* funcs, ks_io_serial_type serial_type, ks_property prop){
     // Redundancy for KS_INLINE
-    if(serialize){
-        ks_string_clear(io->str);
-        return ks_io_value(io, funcs, prop.value, 0, true);
-    }
-    else {
-        io->seek = 0;
-        return ks_io_value(io, funcs, prop.value, 0, false);
+    switch (serial_type) {
+        case KS_IO_SERIALIZER:{
+            ks_string_clear(io->str);
+            return ks_io_value(io, funcs, prop.value, 0, KS_IO_SERIALIZER);
+        }
+        case KS_IO_DESERIALIZER:{
+            io->seek = 0;
+            return ks_io_value(io, funcs, prop.value, 0, KS_IO_DESERIALIZER);
+        }
+        case KS_IO_OTHER_TYPE:{
+            io->seek = 0;
+            ks_string_clear(io->str);
+            return ks_io_value(io, funcs, prop.value, 0, KS_IO_OTHER_TYPE);
+        }
     }
 }
 
@@ -86,12 +93,12 @@ KS_INLINE bool ks_io_pop_userdata(ks_io* io){
     return true;
 }
 
-KS_INLINE bool ks_io_property(ks_io* io, const ks_io_funcs* funcs,  ks_property prop, bool serialize){
+KS_INLINE bool ks_io_property(ks_io* io, const ks_io_funcs* funcs,  ks_property prop, ks_io_serial_type serial_type){
     u32 prop_length = funcs->key(io, funcs, prop.name,  true);
     if(prop_length == 0){
         return false;
     }
-    if(!ks_io_value(io, funcs, prop.value, 0, serialize)) return false;
+    if(!ks_io_value(io, funcs, prop.value, 0, serial_type)) return false;
     return true;
 }
 
@@ -100,9 +107,9 @@ KS_INLINE bool ks_io_magic_number(ks_io* io, const ks_io_funcs* funcs, const cha
     return funcs->value(io, funcs, val, 0);
 }
 
-KS_INLINE bool ks_io_array_begin(ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, u32 offset, bool serialize){
+KS_INLINE bool ks_io_array_begin(ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, u32 offset, ks_io_serial_type serial_type){
 
-    if(!serialize && !array->fixed_length){
+    if(serial_type == KS_IO_DESERIALIZER && !array->fixed_length){
         void* ptr = array->value.ptr.data;
         if(array->value.type == KS_VALUE_OBJECT){
             ks_object_data *obj = ptr;
@@ -121,7 +128,7 @@ KS_INLINE bool ks_io_array_begin(ks_io* io, const ks_io_funcs* funcs, ks_array_d
         }
     }
 
-    if(serialize && !array->fixed_length){
+    if(serial_type == KS_IO_SERIALIZER && !array->fixed_length){
         void* ptr = array->value.ptr.data;
         if(array->value.type == KS_VALUE_OBJECT){
             ks_object_data *obj = ptr;
@@ -143,9 +150,9 @@ KS_INLINE bool ks_io_array_begin(ks_io* io, const ks_io_funcs* funcs, ks_array_d
     return true;
 }
 
-KS_INLINE bool ks_io_string(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, bool serialize){
+KS_INLINE bool ks_io_string(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
     ks_string * str = ks_string_new();
-    if(serialize){
+    if(serial_type == KS_IO_SERIALIZER){
         if(array.length == KS_STRING_UNKNOWN_LENGTH){
             void * ptr =!array.fixed_length  ? *array.value.ptr.vpp: array.value.ptr.data;
             if(ptr != NULL ){
@@ -156,9 +163,10 @@ KS_INLINE bool ks_io_string(ks_io* io, const ks_io_funcs* funcs, ks_array_data a
     }
     if(!funcs->string(io, funcs, array,  str)) return false;
 
-    if(!serialize){
+    if(serial_type == KS_IO_DESERIALIZER){
         if(!array.fixed_length){
-            array.value.ptr.data = *(array.value.ptr.vpp + offset) = str->length == 0 ? NULL : calloc(str->length, array.elem_size);
+            // + 1 for end of string
+            array.value.ptr.data = *(array.value.ptr.vpp + offset) = str->length == 0 ? NULL : calloc(str->length+1, array.elem_size);
         }
         else {
             memset(array.value.ptr.data, 0, array.length*array.elem_size);
@@ -171,20 +179,20 @@ KS_INLINE bool ks_io_string(ks_io* io, const ks_io_funcs* funcs, ks_array_data a
     return true;
 }
 
-KS_INLINE bool ks_io_array(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, bool serialize){
+KS_INLINE bool ks_io_array(ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
 
-    if(!ks_io_array_begin(io, funcs, &array, offset, serialize)) return false;
+    if(!ks_io_array_begin(io, funcs, &array, offset, serial_type)) return false;
 
     for(u32 i=0, e=array.length; i< e; i++){
         if(! funcs->array_elem(io, funcs, array, i)) return false;
     }
 
-    return ks_io_array_end(io, funcs, &array, offset, serialize);
+    return ks_io_array_end(io, funcs, &array, offset, serial_type);
 }
 
-bool ks_io_array_end(ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, u32 offset, bool serialize){
-    if(((!serialize && !array->fixed_length) ||
-        (serialize && !array->fixed_length)) &&
+bool ks_io_array_end(ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, u32 offset, ks_io_serial_type serial_type){
+    if(((serial_type == KS_IO_DESERIALIZER && !array->fixed_length) ||
+        (serial_type == KS_IO_SERIALIZER && !array->fixed_length)) &&
             array->value.type == KS_VALUE_OBJECT){
         free(array->value.ptr.obj);
     }
@@ -193,11 +201,11 @@ bool ks_io_array_end(ks_io* io, const ks_io_funcs* funcs, ks_array_data* array, 
     return true;
 }
 
-KS_INLINE bool ks_io_object(ks_io* io, const ks_io_funcs* funcs, ks_object_data obj, u32 offset, bool serialize){
+KS_INLINE bool ks_io_object(ks_io* io, const ks_io_funcs* funcs, ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
     return funcs->object(io, funcs, obj, offset);
 }
 
-KS_INLINE bool ks_io_value(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 index, bool serialize){
+KS_INLINE bool ks_io_value(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 index, ks_io_serial_type serial_type){
     bool ret = false;
 
     switch (value.type) {
@@ -214,15 +222,15 @@ KS_INLINE bool ks_io_value(ks_io* io, const ks_io_funcs* funcs, ks_value value, 
     case KS_VALUE_ARRAY:{
         ks_array_data* array = value.ptr.arr;
         if(array->value.type == KS_VALUE_STRING_ELEM) {
-            ret = ks_io_string(io, funcs, *array, index, serialize);
+            ret = ks_io_string(io, funcs, *array, index, serial_type);
         }
         else {
-            ret = ks_io_array(io, funcs, *array, index, serialize);
+            ret = ks_io_array(io, funcs, *array, index, serial_type);
         }
         break;
     }
     case KS_VALUE_OBJECT:
-        ret = ks_io_object(io, funcs, *(ks_object_data*)value.ptr.obj, index, serialize);
+        ret = ks_io_object(io, funcs, *(ks_object_data*)value.ptr.obj, index, serial_type);
         break;
     default:
         break;

@@ -1,15 +1,15 @@
 #include "./clike.h"
 
 
-KS_INLINE bool ks_io_print_indent(ks_io* io,  char indent, bool serialize){
-    if(!serialize) return true;
+KS_INLINE bool ks_io_print_indent(ks_io* io,  char indent, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_SERIALIZER) return true;
     char* c = alloca(io->indent+1);
     ks_string_add(io->str, ks_char_array_fill(indent, io->indent+1, c));
     return true;
 }
 
-KS_INLINE bool ks_io_print_endl(ks_io* io, bool serialize){
-    if(!serialize) return true;
+KS_INLINE bool ks_io_print_endl(ks_io* io, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER) return true;
     ks_string_add(io->str, "\n");
     return true;
 }
@@ -23,8 +23,8 @@ KS_INLINE char* ks_char_array_fill(char v, u32 length, char c[]){
 }
 
 
-KS_INLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u32 offset,  bool serialize){
-    if(!serialize){
+KS_INLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u32 offset,  ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER){
         u32 first = ks_string_first_not_of(io->str, io->seek, "\t\n ");
 
         u64 p;
@@ -147,8 +147,8 @@ KS_INLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u3
 }
 
 
-KS_INLINE u32 ks_io_prop_text(ks_io* io, const char* str, const char* delims, bool serialize){
-    if(!serialize){
+KS_INLINE u32 ks_io_prop_text(ks_io* io, const char* str, const char* delims, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER){
         u32 first = ks_string_first_not_of(io->str, io->seek, "\t\n ");
         u32 prop_length = ks_string_first_of(io->str, io->seek + first, delims);
 
@@ -167,8 +167,8 @@ KS_INLINE u32 ks_io_prop_text(ks_io* io, const char* str, const char* delims, bo
     return 1;
 }
 
-KS_INLINE u32 ks_io_text_len(ks_io* io, u32 length, const char* str, bool serialize){
-    if(!serialize){
+KS_INLINE u32 ks_io_text_len(ks_io* io, u32 length, const char* str, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_DESERIALIZER){
         u32 first = ks_string_first_not_of(io->str, io->seek, "\t\n ");
         bool ret = strncmp(io->str->data + io->seek + first, str, length) == 0;
         if(!ret){
@@ -185,32 +185,32 @@ KS_INLINE u32 ks_io_text_len(ks_io* io, u32 length, const char* str, bool serial
     return 1;
 }
 
-KS_INLINE u32 ks_io_text(ks_io* io, const char* str, bool serialize){
-    return ks_io_text_len(io, strlen(str), str, serialize);
+KS_INLINE u32 ks_io_text(ks_io* io, const char* str, ks_io_serial_type serial_type){
+    return ks_io_text_len(io, strlen(str), str, serial_type);
 }
 
-KS_INLINE u32 ks_io_fixed_text(ks_io* io, const char* str, bool serialize){
-    if(!ks_io_text(io, str, serialize)){
+KS_INLINE u32 ks_io_fixed_text(ks_io* io, const char* str, ks_io_serial_type serial_type){
+    if(!ks_io_text(io, str, serial_type)){
         ks_error("Unexcepted syntax, excepted \"%s\"", str);
         return false;
     }
     return true;
 }
 
-KS_INLINE bool ks_io_key_clike(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, bool serialize){
-    ks_io_print_indent(io, '\t', serialize);
+KS_INLINE bool ks_io_key_clike(ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, ks_io_serial_type serial_type){
+    ks_io_print_indent(io, '\t', serial_type);
 
-    if(!serialize){
+    if(serial_type == KS_IO_DESERIALIZER){
         io->seek += ks_string_first_not_of(io->str, io->seek, "\t\n ");
         if( io->seek >= io->str->length || io->str->data[io->seek] == '}'){
             return false;
         }
     }
     u32 seek_tmp = io->seek;
-    ks_io_fixed_text(io, ".", serialize );
-    u32 ret =   ks_io_prop_text(io, name, "\t\n =", serialize) + ks_io_fixed_text(io, "=", serialize );
+    ks_io_fixed_text(io, ".", serial_type );
+    u32 ret =   ks_io_prop_text(io, name, "\t\n =", serial_type) + ks_io_fixed_text(io, "=", serial_type );
 
-    if(!serialize && fixed && strncmp(name, io->str->data + io->seek - ret, strlen(name)) != 0){
+    if(serial_type == KS_IO_DESERIALIZER && fixed && strncmp(name, io->str->data + io->seek - ret, strlen(name)) != 0){
        io->seek = seek_tmp;
         return false;
     }
@@ -218,118 +218,118 @@ KS_INLINE bool ks_io_key_clike(ks_io* io, const ks_io_funcs* funcs, const char* 
     return ret != 0;
 }
 
-KS_INLINE bool ks_io_value_clike(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  bool serialize){
+KS_INLINE bool ks_io_value_clike(ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  ks_io_serial_type serial_type){
     switch(value.type){
     case KS_VALUE_MAGIC_NUMBER:
-        ks_io_print_indent(io,'\t', serialize);
-        return ks_io_text(io, "// Magic number : ", serialize) && ks_io_text(io, value.ptr.str, serialize) && ks_io_print_endl(io, serialize);
+        ks_io_print_indent(io,'\t', serial_type);
+        return ks_io_text(io, "// Magic number : ", serial_type) && ks_io_text(io, value.ptr.str, serial_type) && ks_io_print_endl(io, serial_type);
     default:
         break;
     }
-    u32 ret = ks_io_value_text(io, value.ptr, value.type, offset, serialize);
+    u32 ret = ks_io_value_text(io, value.ptr, value.type, offset, serial_type);
     if(ret == 0) return false;
-    ret += ks_io_fixed_text(io, ",", serialize);
-    ks_io_print_endl(io, serialize);
+    ret += ks_io_fixed_text(io, ",", serial_type);
+    ks_io_print_endl(io, serial_type);
     return ret != 0;
 }
 
-bool ks_io_string_clike(ks_io* io, const ks_io_funcs* funcs, ks_array_data array,ks_string*  str,  bool serialize){
-    if(!ks_io_fixed_text(io, "\"", serialize)) return false;
+bool ks_io_string_clike(ks_io* io, const ks_io_funcs* funcs, ks_array_data array,ks_string*  str,  ks_io_serial_type serial_type){
+    if(!ks_io_fixed_text(io, "\"", serial_type)) return false;
 
-    if(serialize){
+    if(serial_type == KS_IO_SERIALIZER){
         u32 length;
         length = MIN(array.length, strlen(str->data));
         // TODO: escape sequence"
-        ks_io_text_len(io, length, str->data, serialize);
+        ks_io_text_len(io, length, str->data, serial_type);
     }
     else {
         u32 l =ks_string_first_c_of(io->str, io->seek, '\"');
         ks_string_set_n( str, l, io->str->data + io->seek);
         io->seek += l;
     }
-    return ks_io_fixed_text(io, "\"", serialize) &&  ks_io_fixed_text(io, ",", serialize) && ks_io_print_endl(io, serialize);
+    return ks_io_fixed_text(io, "\"", serial_type) &&  ks_io_fixed_text(io, ",", serial_type) && ks_io_print_endl(io, serial_type);
 }
 
-KS_INLINE bool ks_io_array_begin_clike(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool serialize){
+KS_INLINE bool ks_io_array_begin_clike(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
     if(!arr.fixed_length){
-        ks_io_fixed_text(io, "(", serialize);
+        ks_io_fixed_text(io, "(", serial_type);
         switch (arr.value.type) {
         case KS_VALUE_U8:
-            ks_io_fixed_text(io, "u8", serialize);
+            ks_io_fixed_text(io, "u8", serial_type);
             break;
         case KS_VALUE_U16:
-            ks_io_fixed_text(io, "u16", serialize);
+            ks_io_fixed_text(io, "u16", serial_type);
             break;
         case KS_VALUE_U32:
-            ks_io_fixed_text(io, "u32", serialize);
+            ks_io_fixed_text(io, "u32", serial_type);
             break;
         case KS_VALUE_U64:
-            ks_io_fixed_text(io, "u64", serialize);
+            ks_io_fixed_text(io, "u64", serial_type);
             break;
         case KS_VALUE_I8:
-            ks_io_fixed_text(io, "i8", serialize);
+            ks_io_fixed_text(io, "i8", serial_type);
             break;
         case KS_VALUE_I16:
-            ks_io_fixed_text(io, "i16", serialize);
+            ks_io_fixed_text(io, "i16", serial_type);
             break;
         case KS_VALUE_I32:
-            ks_io_fixed_text(io, "i32", serialize);
+            ks_io_fixed_text(io, "i32", serial_type);
             break;
         case KS_VALUE_I64:
-            ks_io_fixed_text(io, "i64", serialize);
+            ks_io_fixed_text(io, "i64", serial_type);
             break;
         case KS_VALUE_OBJECT:{
             ks_object_data *data = arr.value.ptr.obj;
-            ks_io_fixed_text(io, data->type , serialize);
+            ks_io_fixed_text(io, data->type , serial_type);
             break;
         }
         default:
             // TODO ARRAY
             break;
         }
-        ks_io_fixed_text(io, "[", serialize);
-        ks_io_value_text(io, (ks_value_ptr){.u32v = &arr.length}, KS_VALUE_U32, 0, serialize);
-        ks_io_fixed_text(io, "]", serialize);
-        ks_io_fixed_text(io, ")", serialize);
+        ks_io_fixed_text(io, "[", serial_type);
+        ks_io_value_text(io, (ks_value_ptr){.u32v = &arr.length}, KS_VALUE_U32, 0, serial_type);
+        ks_io_fixed_text(io, "]", serial_type);
+        ks_io_fixed_text(io, ")", serial_type);
     }
-    bool ret = ks_io_fixed_text(io, "{", serialize) && ks_io_print_endl(io, serialize);
+    bool ret = ks_io_fixed_text(io, "{", serial_type) && ks_io_print_endl(io, serial_type);
     io->indent ++;
     return ret;
 }
 
-KS_INLINE bool ks_io_array_elem_clike(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, bool serialize){
-     ks_io_print_indent(io,'\t', serialize);
-    if(!ks_io_value(io, funcs, arr.value, index, serialize)) return false;
+KS_INLINE bool ks_io_array_elem_clike(ks_io* io,  const ks_io_funcs* funcs, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
+     ks_io_print_indent(io,'\t', serial_type);
+    if(!ks_io_value(io, funcs, arr.value, index, serial_type)) return false;
 
     return true;
 }
 
-KS_INLINE bool ks_io_array_end_clike(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, bool serialize){
+KS_INLINE bool ks_io_array_end_clike(ks_io* io, const ks_io_funcs* funcs,  ks_array_data arr, ks_io_serial_type serial_type){
     io->indent--;
-    return  ks_io_print_indent(io,'\t', serialize)&&
-            ks_io_fixed_text(io, "}", serialize)  &&
-            ks_io_fixed_text(io, ",", serialize) &&
-            ks_io_print_endl(io, serialize) ;
+    return  ks_io_print_indent(io,'\t', serial_type)&&
+            ks_io_fixed_text(io, "}", serial_type)  &&
+            ks_io_fixed_text(io, ",", serial_type) &&
+            ks_io_print_endl(io, serial_type) ;
 }
 
-KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, bool serialize){
-    if(! (ks_io_fixed_text(io, "{", serialize)  &&
-            ks_io_print_endl(io, serialize))) return false;
+KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
+    if(! (ks_io_fixed_text(io, "{", serial_type)  &&
+            ks_io_print_endl(io, serial_type))) return false;
 
     io->indent++;
 
-    ks_object_func objfunc = serialize ? obj.serializer : obj.deserializer;
-    if(serialize){
+    ks_object_func objfunc = serial_type == KS_IO_DESERIALIZER ? obj.deserializer : obj.serializer;
+    if(serial_type == KS_IO_SERIALIZER){
         if(! objfunc(io, funcs, obj.data, offset)) return false;
         io->indent--;
-        if(! (ks_io_print_indent(io,'\t', serialize)&&
-              ks_io_fixed_text(io, "}", serialize)  &&
-              (io->indent == 0 || ks_io_fixed_text(io, ",", serialize))  &&
-              ks_io_print_endl(io, serialize))) return false;
+        if(! (ks_io_print_indent(io,'\t', serial_type)&&
+              ks_io_fixed_text(io, "}", serial_type)  &&
+              (io->indent == 0 || ks_io_fixed_text(io, ",", serial_type))  &&
+              ks_io_print_endl(io, serial_type))) return false;
     } else {
         for(;;){
             u32 readp = objfunc(io, funcs, obj.data, offset);
-            if( ks_io_text(io, "}", serialize)) break;
+            if( ks_io_text(io, "}", serial_type)) break;
             // if unknown property skip
             if(readp == 0){
                 i32 br = 0;
@@ -342,10 +342,10 @@ KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_funcs* funcs,  ks_objec
             }
         }
         io->indent--;
-        if(!(io->indent == 0 || ks_io_fixed_text(io, ",", serialize))) return false;
+        if(!(io->indent == 0 || ks_io_fixed_text(io, ",", serial_type))) return false;
     }
 
     return true;
 }
 
-ks_io_funcs_impl(clike)
+ks_io_funcs_impl_rw(clike)

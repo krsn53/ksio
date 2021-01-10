@@ -1,6 +1,7 @@
 #include "../ksio/io.h"
 #include "../ksio/serial/clike.h"
 #include "../ksio/serial/binary.h"
+#include "../ksio/serial/deleter.h"
 #include <stdio.h>
 
 typedef struct Test{
@@ -77,10 +78,10 @@ int main ( void ){
         printf("--- C like deserialize test ---\n");
         ks_io_begin_deserialize(io, clike, ks_prop_root(test2, Test));
         printf("result: test is equals test2 = %s\n", Test_equals(&test, &test2) ? "True" : "False");
-
-        free(test2.arr_len);
-        free(test2.str_len);
-        free(test2.str_p);
+        ks_io_begin_serialize(io, clike, ks_prop_root(test2, Test));
+        printf("%s", io->str->data);
+        fflush(stdout);
+        ks_io_begin_other(io, deleter, ks_prop_root(test2, Test));
     }
 
     {
