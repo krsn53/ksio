@@ -108,13 +108,14 @@ KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_methods* methods, ks_va
     switch (value.type) {
     case KS_VALUE_MAGIC_NUMBER:{
         if(serial_type == KS_IO_DESERIALIZER){
-            if(memcmp(value.ptr.str, io->str->data + io->seek, strlen(value.ptr.str)) != 0){
-                char c[5] = { 0 };
-                memcpy(c, io->str->data + io->seek, 4);
+            u32 len = strlen(value.ptr.str);
+            if(memcmp(value.ptr.str, io->str->data + io->seek, len) != 0){
+                char c[5] = { 0 }; // normaly bytes of magic number is 4 ???
+                memcpy(c, io->str->data + io->seek, strlen(value.ptr.str));
                 ks_error("Excepted magic number \"%s\", detected \"%s\"", value.ptr.str, c);
                return false;
             }
-            io->seek += 4;
+            io->seek += len;
         } else {
             ks_string_add_n(io->str, strlen(value.ptr.str), value.ptr.str);
         }

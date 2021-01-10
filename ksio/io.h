@@ -412,7 +412,7 @@ ks_property ks_prop_v(void *name, ks_value value);
 #define ks_str_p(name)                      ks_p(ks_prop_str_len(name, KS_STRING_UNKNOWN_LENGTH))
 #define ks_str_len(name, len)               ks_p(ks_prop_str_len(name, len))
 
-#define ks_magic_number(num)                ks_io_magic_number(__IO, __FUNCS, num)
+#define ks_magic_number(num)                if(!ks_io_magic_number(__IO, __FUNCS, num)) return 0;
 
 
 
