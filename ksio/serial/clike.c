@@ -2,7 +2,7 @@
 
 
 KS_INLINE bool ks_io_print_indent(ks_io* io,  char indent, ks_io_serial_type serial_type){
-    if(serial_type == KS_IO_SERIALIZER) return true;
+    if(serial_type == KS_IO_DESERIALIZER) return true;
     char* c = alloca(io->indent+1);
     ks_string_add(io->str, ks_char_array_fill(indent, io->indent+1, c));
     return true;

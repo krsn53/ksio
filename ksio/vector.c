@@ -1,4 +1,5 @@
 #include "vector.h"
+#include "logger.h"
 #include <stdlib.h>
 #include <memory.h>
 
@@ -41,7 +42,10 @@ KS_INLINE void ks_vector_push_base(void** data, u32 type_size, u32* length, u32 
 }
 
 KS_INLINE void ks_vector_pop_base(void**data, u32 type_size, u32* length){
-    if(*length == 0) return;
+    if(*length == 0) {
+        ks_warning("Failed to pop from vector because length is zero");
+        return;
+    }
     -- *length;
     memset(*(char**)data + *length*type_size, 0, type_size);
 }

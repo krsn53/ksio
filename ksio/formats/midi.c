@@ -4,14 +4,15 @@
 
 #include "../serial/clike.h"
 #include "../serial/binary.h"
+#include "../serial/deleter.h"
 
-bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_property prop,  bool serialize){
+bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_property prop, ks_io_serial_type serial_type){
     if(funcs != &binary_big_endian_serializer && funcs != & binary_big_endian_deserializer &&
             funcs != &binary_little_endian_serializer && funcs != &binary_little_endian_deserializer) {
-        return ks_io_property(io, funcs, prop, serialize);
+        return ks_io_property(io, funcs, prop, serial_type);
     }
 
-    if(serialize){
+    if(serial_type == KS_IO_SERIALIZER){
         u8 out[4] = { 0 };
         u32 in = *prop.value.ptr.u32v;
 
@@ -31,7 +32,7 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_propert
         }
         for(; i>=0; i--){
             p.value.ptr.u8v =  &out[i];
-            if(!ks_io_value(io, funcs, p.value, 0, serialize)) return false;
+            if(!ks_io_value(io, funcs, p.value, 0, serial_type)) return false;
         }
 
         return true;
@@ -44,7 +45,7 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_propert
         u32 out=0;
 
         do{
-            if(!ks_io_value(io, funcs, p.value, 0, serialize)) return false;
+            if(!ks_io_value(io, funcs, p.value, 0, serial_type)) return false;
             out <<= 7;
             out |= in & 0x7f;
         }while(in >= 0x80);
@@ -140,7 +141,7 @@ ks_io_begin_custom_func(ks_midi_track)
     ks_magic_number("MTrk");
     ks_u32(length);
 
-    if(__SERIAL_TYPE == KS_IO_SERIALIZER){
+    if(__SERIAL_TYPE == KS_IO_SERIALIZER || __SERIAL_TYPE == KS_IO_OTHER_TYPE){
         ks_arr_obj_len(events, ks_midi_event, ks_access(num_events));
     } else {
         ks_access(num_events) = 0;

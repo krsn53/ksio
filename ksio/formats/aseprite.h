@@ -121,7 +121,7 @@ typedef struct ks_asperite_old_palette{
     ks_asperite_packet  *packets;
 } ks_asperite_old_palette;
 
-typedef struct ks_asperite_layar{
+typedef struct ks_asperite_layer{
     u16                 flags;
     u16                 type; // normal, group
     u16                 child_level;
@@ -131,7 +131,7 @@ typedef struct ks_asperite_layar{
     u8                  opacity;
     u8                  for_future[3];
     ks_asperite_string  layer_name;
-} ks_asperite_layar;
+} ks_asperite_layer;
 
 
 typedef struct ks_asperite_raw_cel{
@@ -258,7 +258,7 @@ typedef struct ks_asperite_chunk{
         // 0x0004 or 0x0011
         ks_asperite_old_palette     old_palette;
         // 0x2004
-        ks_asperite_layar           layer;
+        ks_asperite_layer           layer;
         // 0x2005
         ks_asperite_cel             cel;
         // 0x2006

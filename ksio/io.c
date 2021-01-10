@@ -5,6 +5,7 @@
 ks_io* ks_io_new(){
     ks_io* ret = malloc(sizeof(ks_io));
     ks_vector_init(&ret->userdatas);
+    ks_vector_init(&ret->states);
     ret->str = ks_string_new();
     ret->seek = 0;
     ret->indent = 0;
@@ -14,14 +15,17 @@ ks_io* ks_io_new(){
 
 void ks_io_free(ks_io* io){
     ks_vector_free(&io->userdatas);
+    ks_vector_free(&io->states);
     ks_string_free(io->str);
     free(io);
 }
 
 void ks_io_reset(ks_io* io){
     ks_vector_clear(&io->userdatas);
+    ks_vector_clear(&io->states);
     ks_string_clear(io->str);
     io->seek =0;
+    io->indent = 0;
 }
 
 
@@ -30,16 +34,18 @@ bool ks_io_begin(ks_io* io, const ks_io_funcs* funcs, ks_io_serial_type serial_t
     // Redundancy for KS_INLINE
     switch (serial_type) {
         case KS_IO_SERIALIZER:{
-            ks_string_clear(io->str);
+            ks_io_reset(io);
             return ks_io_value(io, funcs, prop.value, 0, KS_IO_SERIALIZER);
         }
         case KS_IO_DESERIALIZER:{
-            io->seek = 0;
+            ks_vector_clear(&io->userdatas);
+            ks_vector_clear(&io->states);
+            io->seek =0;
+            io->indent = 0;
             return ks_io_value(io, funcs, prop.value, 0, KS_IO_DESERIALIZER);
         }
         case KS_IO_OTHER_TYPE:{
-            io->seek = 0;
-            ks_string_clear(io->str);
+            ks_io_reset(io);
             return ks_io_value(io, funcs, prop.value, 0, KS_IO_OTHER_TYPE);
         }
     }
@@ -77,7 +83,6 @@ KS_INLINE ks_property ks_prop_v(void* name, ks_value value) {
 }
 
 
-
 KS_INLINE ks_io_userdata* ks_io_top_userdata_from (ks_io* io, u32 index){
     if(io->userdatas.length <= index) return NULL;
     return &io->userdatas.data[io->userdatas.length - 1 - index];
@@ -90,6 +95,21 @@ KS_INLINE bool ks_io_push_userdata (ks_io* io, ks_io_userdata userdata){
 
 KS_INLINE bool ks_io_pop_userdata(ks_io* io){
     ks_vector_pop(&io->userdatas);
+    return true;
+}
+
+KS_INLINE ks_io_userdata* ks_io_top_state_from (ks_io* io, u32 index){
+    if(io->states.length <= index) return NULL;
+    return &io->states.data[io->states.length - 1 - index];
+}
+
+KS_INLINE bool ks_io_push_state(ks_io* io, ks_io_userdata userdata){
+    ks_vector_push(&io->states, userdata);
+    return true;
+}
+
+KS_INLINE bool ks_io_pop_state(ks_io* io){
+    ks_vector_pop(&io->states);
     return true;
 }
 

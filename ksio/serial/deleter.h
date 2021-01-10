@@ -2,6 +2,8 @@
 
 #include "../io.h"
 
+#define     KS_PRINT_DELETE_LOG true
+
 bool        ks_io_key_deleter                     (ks_io* io, const ks_io_funcs* funcs, const char* name, bool fixed, ks_io_serial_type serial_type);
 bool        ks_io_string_deleter                  (ks_io* io, const ks_io_funcs* funcs, ks_array_data array, ks_string* str, ks_io_serial_type serial_type);
 bool        ks_io_value_deleter                   (ks_io* io, const ks_io_funcs* funcs, ks_value value, u32 offset,  ks_io_serial_type serial_type);
@@ -12,3 +14,6 @@ bool        ks_io_object_deleter                  (ks_io* io, const ks_io_funcs*
 
 
 ks_io_funcs_decl_ext_other(deleter);
+
+
+#define     ks_io_delete(io, prop) ks_io_begin_other(io, deleter, prop)

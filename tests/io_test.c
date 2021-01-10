@@ -81,7 +81,7 @@ int main ( void ){
         ks_io_begin_serialize(io, clike, ks_prop_root(test2, Test));
         printf("%s", io->str->data);
         fflush(stdout);
-        ks_io_begin_other(io, deleter, ks_prop_root(test2, Test));
+        ks_io_delete(io, ks_prop_root(test2, Test));
     }
 
     {
@@ -98,9 +98,7 @@ int main ( void ){
         ks_io_begin_deserialize(io, binary_little_endian, ks_prop_root(test3, Test));
         printf("result: test is equals test3 = %s\n", Test_equals(&test, &test3) ? "True" : "False");
 
-        free(test3.arr_len);
-        free(test3.str_len);
-        free(test3.str_p);
+        ks_io_delete(io, ks_prop_root(test3, Test));
     }
 
 
@@ -118,10 +116,13 @@ int main ( void ){
         ks_io_begin_deserialize(io, binary_big_endian, ks_prop_root(test4, Test));
         printf("result: test is equals test4 = %s\n", Test_equals(&test, &test4) ? "True" : "False");
 
-        free(test4.arr_len);
-        free(test4.str_len);
-        free(test4.str_p);
+        ks_io_delete(io, ks_prop_root(test4, Test));
     }
+
+#if(KS_PRINT_DELETE_LOG)
+    printf("\n--- result of clean up with deleter test ---\n");
+    printf("%s\n", io->str->data);
+#endif
     ks_io_free(io);
 
     return 0;

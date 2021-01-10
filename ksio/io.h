@@ -25,6 +25,7 @@ typedef struct ks_io_userdata_list{
 typedef struct ks_io{
     ks_string               *str;
     ks_io_userdata_list     userdatas;
+    ks_io_userdata_list     states;
     u32                     seek;
     u32                     indent;
 }ks_io;
@@ -109,7 +110,8 @@ typedef struct ks_array_data{
 typedef struct ks_object_data{
     const char      *type;
     ks_object_func  serializer,
-                    deserializer;
+                    deserializer,
+                    other;
     void            *data;
 }ks_object_data;
 
@@ -127,6 +129,9 @@ void        ks_io_read_string                   (ks_io* io, const char* data);
 ks_io_userdata* ks_io_top_userdata_from         (ks_io* io, u32 index);
 bool            ks_io_push_userdata             (ks_io* io, ks_io_userdata userdata);
 bool            ks_io_pop_userdata              (ks_io* io);
+ks_io_userdata* ks_io_top_state_from            (ks_io* io, u32 index);
+bool            ks_io_push_state                (ks_io* io, ks_io_userdata userdata);
+bool            ks_io_pop_state                 (ks_io* io);
 bool            ks_io_property                  (ks_io* io, const ks_io_funcs* funcs,  ks_property prop, ks_io_serial_type serial_type);
 bool            ks_io_magic_number              (ks_io* io, const ks_io_funcs* funcs, const char* data);
 bool            ks_io_string                    (ks_io* io, const ks_io_funcs* funcs, ks_array_data array, u32 offset, ks_io_serial_type serial_type);
@@ -219,10 +224,12 @@ ks_value    ks_val_ptr                              (void* ptr, ks_value_type ty
 #define ks_io_custom_func(type)                     ks_io_ ## type
 #define ks_io_custom_func_serializer(type)          ks_io_custom_func(type ## _serializer)
 #define ks_io_custom_func_deserializer(type)        ks_io_custom_func(type ## _deserializer)
+#define ks_io_custom_func_other(type)               ks_io_custom_func(type ## _other)
 
 #define ks_io_custom_func_args                      ks_io* io, const ks_io_funcs* funcs,  void *v, u32 offset
 
 #define ks_io_decl_custom_func(type) \
+    u32 ks_io_custom_func_other(type) (ks_io_custom_func_args); \
      u32 ks_io_custom_func_serializer(type) (ks_io_custom_func_args); \
      u32 ks_io_custom_func_deserializer(type) (ks_io_custom_func_args)
 
@@ -231,6 +238,7 @@ ks_value    ks_val_ptr                              (void* ptr, ks_value_type ty
     ks_begin_props(io, funcs, serialize, offset, type, v);
 
 #define ks_io_end_custom_func(type) ks_end_props return __RETURN; } \
+    u32 ks_io_custom_func_other(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, funcs, v, offset, KS_IO_OTHER_TYPE);  } \
     u32 ks_io_custom_func_serializer(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, funcs, v, offset, KS_IO_SERIALIZER); } \
     u32 ks_io_custom_func_deserializer(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, funcs, v, offset, KS_IO_DESERIALIZER); }
 
@@ -254,6 +262,7 @@ ks_property ks_prop_v(void *name, ks_value value);
         #type , \
         ks_io_custom_func_serializer(type) , \
         ks_io_custom_func_deserializer(type) , \
+        ks_io_custom_func_other(type) , \
         & ptr,\
     })
 

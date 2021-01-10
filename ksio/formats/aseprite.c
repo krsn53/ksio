@@ -40,7 +40,7 @@ ks_io_begin_custom_func(ks_asperite_old_palette)
     ks_arr_obj_len(packets, ks_asperite_packet, ks_access(num_packets));
 ks_io_end_custom_func(ks_asperite_old_palette)
 
-ks_io_begin_custom_func(ks_asperite_layar)
+ks_io_begin_custom_func(ks_asperite_layer)
     ks_u16(flags);
     ks_u16(type);
     ks_u16(child_level);
@@ -50,7 +50,7 @@ ks_io_begin_custom_func(ks_asperite_layar)
     ks_u8(opacity);
     ks_arr_u8(for_future);
     ks_obj(layer_name, ks_asperite_string);
-ks_io_end_custom_func(ks_asperite_layar)
+ks_io_end_custom_func(ks_asperite_layer)
 
 
 ks_io_begin_custom_func(ks_asperite_raw_cel)
