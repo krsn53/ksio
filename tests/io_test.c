@@ -1,4 +1,6 @@
 #include "../ksio/io.h"
+#include "../ksio/serial/clike.h"
+#include "../ksio/serial/binary.h"
 #include <stdio.h>
 
 typedef struct Test{

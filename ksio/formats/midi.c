@@ -2,6 +2,9 @@
 #include "math.h"
 #include <string.h>
 
+#include "../serial/clike.h"
+#include "../serial/binary.h"
+
 bool ks_io_variable_length_number(ks_io* io, const ks_io_funcs*funcs, ks_property prop,  bool serialize){
     if(funcs != &binary_big_endian_serializer && funcs != & binary_big_endian_deserializer &&
             funcs != &binary_little_endian_serializer && funcs != &binary_little_endian_deserializer) {
@@ -98,7 +101,7 @@ ks_io_begin_custom_func(ks_midi_event)
             break;
         default:
             if(!__SERIALIZE){
-                ks_io_userdata* ud = ks_io_get_userdata(io, 0);
+                ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
                 if(ud->val == -1 && (ks_access(status) >> 4) == 0x9){
                     ud->val = ks_access(status) & 0x0f;
                 }
@@ -118,7 +121,7 @@ ks_io_begin_custom_func(ks_midi_event)
                 break;
             default:
             {
-                ks_io_userdata* ud = ks_io_get_userdata(io, 0);
+                ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
                 if(!__SERIALIZE && ud->val != -1){
                     ks_access(message.data[0]) = ks_access(status);
                     ks_access(status) = 0x90 + ud->val;

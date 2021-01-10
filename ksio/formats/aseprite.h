@@ -57,6 +57,12 @@ enum ks_asperite_cel_extra_flags{
     KS_ASPERITE_USE_SPECIAL_FIXED_GAMMA = 1,
 };
 
+enum ks_asperite_loop_anime_dir{
+    KS_ASPERITE_LOOP_FORWARD    = 0,
+    KS_ASPERITE_LOOP_REVERSE    = 1,
+    KS_ASPERITE_LOOP_PING_PONG  = 2,
+};
+
 enum ks_asperite_palette_entry_flags{
     KS_ASPERITE_PALETTE_ENTRY_HAS_NAME = 1,
 };
@@ -177,7 +183,7 @@ typedef struct ks_asperite_mask{
     u16                 width;
     u16                 height;
     u8                  for_future[8];
-    char                *name;
+    ks_asperite_string  *name;
     u8                  *bitmap_data; // size = height*((width+7)/8)
 }ks_asperite_mask;
 
@@ -217,7 +223,7 @@ typedef struct ks_asperite_palette{
 
 typedef struct ks_asperite_userdata{
     u32                     flags; // 1: has text, 2: has color
-    ks_asperite_string      string; // if flags have 1
+    ks_asperite_string      text; // if flags have 1
     ks_asperite_rgba_color  color;  // if flags color
 }ks_asperite_userdata;
 
@@ -301,5 +307,31 @@ typedef struct ks_aseprite_file{
     i16                 y;
     u16                 grid_width; // zero if there is no grid, grid size is 16x16 on default
     u16                 grid_height;
-    u8                  for_future_h[84]; // set to zero
+    u8                  for_future[84]; // set to zero
+    ks_asperite_frame   frame;
 }ks_aseprite_file;
+
+ks_io_decl_custom_func(ks_asperite_string);
+ks_io_decl_custom_func(ks_asperite_rgba_color);
+ks_io_decl_custom_func(ks_asperite_grayscale_color);
+ks_io_decl_custom_func(ks_asperite_indexed_color);
+ks_io_decl_custom_func(ks_asperite_packet);
+ks_io_decl_custom_func(ks_asperite_old_palette);
+ks_io_decl_custom_func(ks_asperite_layer);
+ks_io_decl_custom_func(ks_asperite_raw_cel);
+ks_io_decl_custom_func(ks_asperite_compressed_cel);
+ks_io_decl_custom_func(ks_asperite_cel);
+ks_io_decl_custom_func(ks_asperite_cel_extra);
+ks_io_decl_custom_func(ks_asperite_profile);
+ks_io_decl_custom_func(ks_asperite_mask);
+ks_io_decl_custom_func(ks_asperite_path);
+ks_io_decl_custom_func(ks_asperite_tag);
+ks_io_decl_custom_func(ks_asperite_tags);
+ks_io_decl_custom_func(ks_asperite_palette_entry);
+ks_io_decl_custom_func(ks_asperite_palette);
+ks_io_decl_custom_func(ks_asperite_userdata);
+ks_io_decl_custom_func(ks_asperite_slice_key);
+ks_io_decl_custom_func(ks_asperite_slice);
+ks_io_decl_custom_func(ks_asperite_chunk);
+ks_io_decl_custom_func(ks_asperite_frame);
+ks_io_decl_custom_func(ks_asperite_file);
