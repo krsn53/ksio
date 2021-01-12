@@ -225,7 +225,7 @@ ks_value    ks_val_ptr                              (void* ptr, ks_value_type ty
     u32 __RETURN = 0; \
     { \
     ks_io * __IO = io; \
-    const ks_io_methods * __FUNCS = methods; \
+    const ks_io_methods * __METHODS = methods; \
     ks_io_serial_type __SERIAL_TYPE = serial_type; \
     u32 __INDEX = offset; \
     type * __OBJECT = (type*)((char*)obj + offset*sizeof(type)); \
@@ -317,7 +317,7 @@ ks_property ks_prop_v(void *name, ks_value value);
 
 #define ks_prop_obj(name, type)             ks_prop_obj_as(#name, type, name)
 
-#define ks_func_prop(func, prop)        if(! func ( __IO, __FUNCS, prop,  __SERIAL_TYPE )) return false
+#define ks_func_prop(func, prop)        if(! func ( __IO, __METHODS, prop,  __SERIAL_TYPE )) return false
 
 #define ks_prop_root(obj, type)         ks_prop_v("", ks_val_ptr(ks_arr_type(ks_object_data, ks_prop_obj_ptr_data(obj, type)), KS_VALUE_OBJECT))
 
@@ -371,7 +371,7 @@ ks_property ks_prop_v(void *name, ks_value value);
 #define ks_prop_arr_i8_len(name, len)           ks_prop_arr_len(name, len, ks_val_i8(name))
 
 
-#define ks_p(prop)                          __RETURN += ks_io_property(__IO, __FUNCS, prop, __SERIAL_TYPE) ? 1 : 0
+#define ks_p(prop)                          __RETURN += ks_io_property(__IO, __METHODS, prop, __SERIAL_TYPE) ? 1 : 0
 
 #define ks_u64(name)                        ks_p(ks_prop_u64(name))
 #define ks_u32(name)                        ks_p(ks_prop_u32(name))
@@ -412,7 +412,7 @@ ks_property ks_prop_v(void *name, ks_value value);
 #define ks_str_p(name)                      ks_p(ks_prop_str_len(name, KS_STRING_UNKNOWN_LENGTH))
 #define ks_str_len(name, len)               ks_p(ks_prop_str_len(name, len))
 
-#define ks_magic_number(num)                if(!ks_io_magic_number(__IO, __FUNCS, num)) return 0;
+#define ks_magic_number(num)                if(!ks_io_magic_number(__IO, __METHODS, num)) return 0;
 
 
 
