@@ -108,6 +108,7 @@ typedef union ks_aseprite_pixels{
     ks_aseprite_rgba_color      *rgba;
     ks_aseprite_grayscale_color *grayscale;
     ks_aseprite_indexed_color   *indexed;
+    u8                          *data;
 }ks_aseprite_pixels;
 
 typedef struct ks_aseprite_packet{
@@ -140,11 +141,7 @@ typedef struct ks_aseprite_raw_cel{
     ks_aseprite_pixels  pixels;
 }ks_aseprite_raw_cel;
 
-typedef struct ks_aseprite_compressed_cel{
-    u16                 width;
-    u16                 height;
-    u8                  *data; // compressed
-}ks_aseprite_compressed_cel;
+typedef ks_aseprite_raw_cel ks_aseprite_compressed_cel;
 
 typedef struct ks_aseprite_cel{
     u16                 layer_index;

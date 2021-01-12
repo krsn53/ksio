@@ -148,10 +148,10 @@ ks_io_begin_custom_func(ks_midi_track)
 
         ks_array_data arr = ks_prop_arr_data_len(ks_access(length) / 3, events, ks_val_obj(events, ks_midi_event), false);
 
-        if(!ks_io_array_begin(__IO, __FUNCS, &arr, 0, __SERIAL_TYPE)) return false;
+        if(!ks_io_array_begin(__IO, __METHODS, &arr, 0, __SERIAL_TYPE)) return false;
 
         for(;;){
-            __FUNCS->array_elem(__IO, __FUNCS, arr, ks_access(num_events));
+            __METHODS->array_elem(__IO, __METHODS, arr, ks_access(num_events));
             if(ks_access(events)[ks_access(num_events)].status == 0xff &&
                 ks_access(events)[ks_access(num_events)].message.meta.type == 0x2f){
                 ks_access(num_events) ++;
@@ -163,7 +163,7 @@ ks_io_begin_custom_func(ks_midi_track)
 
         ks_access(events) = realloc(ks_access(events), sizeof(ks_midi_event)*ks_access(num_events));
 
-        if(!ks_io_array_end(__IO, __FUNCS, &arr, 0, __SERIAL_TYPE)) return false;
+        if(!ks_io_array_end(__IO, __METHODS, &arr, 0, __SERIAL_TYPE)) return false;
     }
 ks_io_end_custom_func(ks_midi_track)
 

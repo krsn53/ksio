@@ -244,5 +244,6 @@ KS_INLINE bool ks_io_object_binary_big_endian(ks_io* io, const ks_io_methods* me
 }
 
 
+
 ks_io_methods_impl_rw(binary_little_endian)
 ks_io_methods_impl_rw(binary_big_endian)

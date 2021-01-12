@@ -1,5 +1,13 @@
 #include "aseprite.h"
 
+#ifdef KSIO_STB_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#define STBI_NO_LINEAR
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+#endif
+
+#include "../serial/binary.h"
 
 ks_io_begin_custom_func(ks_aseprite_string)
     ks_u16(length);
@@ -56,25 +64,60 @@ ks_io_end_custom_func(ks_aseprite_layer)
 ks_io_begin_custom_func(ks_aseprite_raw_cel)
     ks_u16(width);
     ks_u16(height);
-    switch (ks_io_top_userdata_from(io, 0)->val) {
+    switch (ks_io_top_userdata_from(io, 1)->val) {
         case 8:
-            ks_obj(pixels.indexed, ks_aseprite_indexed_color);
+            ks_arr_obj_len(pixels.indexed, ks_aseprite_indexed_color, ks_access(width)* ks_access(height));
             break;
         case 16:
-            ks_obj(pixels.grayscale, ks_aseprite_indexed_color);
+            ks_arr_obj_len(pixels.grayscale, ks_aseprite_indexed_color, ks_access(width)* ks_access(height));
             break;
         case 32:
-            ks_obj(pixels.rgba, ks_aseprite_rgba_color);
+            ks_arr_obj_len(pixels.rgba, ks_aseprite_rgba_color, ks_access(width)* ks_access(height));
             break;
         default:
             return false;
     }
 ks_io_end_custom_func(ks_aseprite_raw_cel)
 
+
 ks_io_begin_custom_func(ks_aseprite_compressed_cel)
     ks_u16(width);
     ks_u16(height);
-    // TODO
+    if(methods == &binary_little_endian_deserializer){
+        u8* data;
+        u32 elem_s = ks_access(width) * ks_access(height);
+        switch(ks_io_top_userdata_from(io, 1)->val){
+        case 8:
+            data = malloc(elem_s *= sizeof(ks_aseprite_indexed_color));
+            break;
+        case 16:
+            data = malloc(elem_s *= sizeof(ks_aseprite_grayscale_color));
+            break;
+        case 32:
+            data = malloc(elem_s *= sizeof(ks_aseprite_rgba_color));
+            break;
+        }
+
+        int len=0;
+        stbi__zbuf a;
+        a.zbuffer = (stbi_uc *) (io->str->data + io->seek);
+        a.zbuffer_end = (stbi_uc *) (io->str->data + io->str->length);
+        if (stbi__do_zlib(&a, (char*)data, elem_s, 0, 1)){
+            len = ks_io_top_userdata_from(io, 0)->val -
+                    (sizeof(u16) + sizeof(i16)*2 + sizeof(u8) + sizeof(u16) + sizeof(u8)*7 +  // cel chunk
+                     sizeof(u16)*2);    // width and height
+        } else {
+            ks_error("Failed to parse zlib");
+            return 0;
+        }
+
+        io->seek += len;
+        ks_access(pixels).data = data;
+        __RETURN ++;
+    }
+    else{
+        ks_error("unsupported");
+    }
 ks_io_end_custom_func(ks_aseprite_compressed_cel)
 
 ks_io_begin_custom_func(ks_aseprite_cel)
@@ -91,9 +134,11 @@ ks_io_begin_custom_func(ks_aseprite_cel)
         case KS_ASEPRITE_LINKED_CEL:
             ks_u16(data.linked_frame_position);
             break;
-        case KS_ASEPRITE_COMPRESSED_IMAGE:
+        case KS_ASEPRITE_COMPRESSED_IMAGE:{
+            ks_access(type) = KS_ASEPRITE_RAW_CEL;
             ks_obj(data.compressed_cel, ks_aseprite_compressed_cel);
             break;
+        }
     }
 ks_io_end_custom_func(ks_aseprite_cel)
 
@@ -202,6 +247,7 @@ ks_io_end_custom_func(ks_aseprite_slice)
 
 ks_io_begin_custom_func(ks_aseprite_chunk)
     ks_u32(size);
+    ks_io_push_userdata(io, (ks_io_userdata){.val = ks_access(size)});
     ks_u16(type);
     switch (ks_access(type)) {
         case 0x0004:
@@ -236,6 +282,7 @@ ks_io_begin_custom_func(ks_aseprite_chunk)
             ks_obj(data.slice, ks_aseprite_slice);
             break;
     }
+    ks_io_pop_userdata(io);
 ks_io_end_custom_func(ks_aseprite_chunk)
 
 ks_io_begin_custom_func(ks_aseprite_frame)

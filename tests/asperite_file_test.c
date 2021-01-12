@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 
     ks_io_delete(io, ase, ks_aseprite_file);
 
-#if(KS_PRINT_DELETE_LOG)
+#if(KS_PRINT_DELETE_LOG &&0)
     printf("%s\n", io->str->data);
 #endif
 
