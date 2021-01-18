@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 
 project(ksio LANGUAGES C)
 
-option(KSIO_STB_IMPLEMENTATION "" ON)
-
 function(add_resources target dir)
     file(GLOB_RECURSE  ${target}_resources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${dir}/*)
 
