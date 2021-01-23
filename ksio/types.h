@@ -18,10 +18,26 @@ typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t  u8;
 
-#if (defined(_MSC_VER) || defined (__TINYC__))
+#if (defined(_MSC_VER))
+#define KS_INLINE __inline
+#elif (defined(__TINYCC__))
 #define KS_INLINE
 #else
-#define KS_INLINE inline
+#define KS_INLINE __inline__
+#endif
+
+#if (defined(_MSC_VER))
+#define KS_FORCEINLINE __forceinline
+#elif (defined(__TINYCC__))
+#define KS_FORCEINLINE
+#else
+#define KS_FORCEINLINE __attribute__((always_inline))
+#endif
+
+#if (defined(_MSC_VER) || defined (__TINYC__))
+#define KS_NOINLINE
+#else
+#define KS_NOINLINE __attribute__((noinline))
 #endif
 
 #ifndef MAX

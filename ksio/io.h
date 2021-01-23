@@ -246,13 +246,13 @@ ks_value    ks_val_ptr                              (void* ptr, ks_value_type ty
      u32 ks_io_custom_func_deserializer(type) (ks_io_custom_func_args)
 
 #define ks_io_begin_custom_func(type) \
-    static inline u32 ks_io_custom_func(type)( ks_io_custom_func_args, ks_io_serial_type serial_type ){ \
+    KS_FORCEINLINE static u32 ks_io_custom_func(type)( ks_io_custom_func_args, ks_io_serial_type serial_type ){ \
     ks_begin_props(io, methods, serialize, offset, type, v);
 
 #define ks_io_end_custom_func(type) ks_end_props return __RETURN; } \
-    u32 ks_io_custom_func_other(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, methods, v, offset, KS_IO_OTHER_TYPE);  } \
-    u32 ks_io_custom_func_serializer(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, methods, v, offset, KS_IO_SERIALIZER); } \
-    u32 ks_io_custom_func_deserializer(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, methods, v, offset, KS_IO_DESERIALIZER); }
+    KS_NOINLINE u32 ks_io_custom_func_other(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, methods, v, offset, KS_IO_OTHER_TYPE);  } \
+    KS_NOINLINE u32 ks_io_custom_func_serializer(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, methods, v, offset, KS_IO_SERIALIZER); } \
+    KS_NOINLINE u32 ks_io_custom_func_deserializer(type)(ks_io_custom_func_args){ return ks_io_custom_func(type)(io, methods, v, offset, KS_IO_DESERIALIZER); }
 
 ks_property ks_prop_v(void *name, ks_value value);
 

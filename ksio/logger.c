@@ -1,6 +1,6 @@
 #include "logger.h"
 
-KS_INLINE int ks_log(int type, const char* message, ...){
+int ks_log(int type, const char* message, ...){
     const unsigned pre_size = sizeof ("Warning : ");
     const char* pre[NUM_KS_LOG_TYPES]= {
         "Info    : ",

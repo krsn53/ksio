@@ -28,7 +28,7 @@ void ks_io_reset(ks_io* io){
     io->indent = 0;
 }
 
-KS_INLINE bool ks_io_begin_base (ks_io*io, const ks_io_methods* methods, ks_property prop, ks_io_serial_type type){
+KS_FORCEINLINE bool ks_io_begin_base (ks_io*io, const ks_io_methods* methods, ks_property prop, ks_io_serial_type type){
     switch (type) {
     case KS_IO_DESERIALIZER:
         ks_vector_clear(&io->userdatas);
@@ -99,46 +99,46 @@ void ks_io_read_string(ks_io* io, const char* data){
     ks_string_set_n(io->str, strlen(data), data);
 }
 
-KS_INLINE ks_value ks_val_ptr(void* ptr, ks_value_type type) {
+KS_FORCEINLINE ks_value ks_val_ptr(void* ptr, ks_value_type type) {
     return (ks_value){ type, {.data=ptr} };
 }
 
-KS_INLINE ks_property ks_prop_v(void* name, ks_value value) {
+KS_FORCEINLINE ks_property ks_prop_v(void* name, ks_value value) {
     return (ks_property){name, value};
 }
 
 
-KS_INLINE ks_io_userdata* ks_io_top_userdata_from (ks_io* io, u32 index){
+KS_FORCEINLINE ks_io_userdata* ks_io_top_userdata_from (ks_io* io, u32 index){
     if(io->userdatas.length <= index) return NULL;
     return &io->userdatas.data[io->userdatas.length - 1 - index];
 }
 
-KS_INLINE bool ks_io_push_userdata (ks_io* io, ks_io_userdata userdata){
+KS_FORCEINLINE bool ks_io_push_userdata (ks_io* io, ks_io_userdata userdata){
     ks_vector_push(&io->userdatas, userdata);
     return true;
 }
 
-KS_INLINE bool ks_io_pop_userdata(ks_io* io){
+KS_FORCEINLINE bool ks_io_pop_userdata(ks_io* io){
     ks_vector_pop(&io->userdatas);
     return true;
 }
 
-KS_INLINE ks_io_userdata* ks_io_top_state_from (ks_io* io, u32 index){
+KS_FORCEINLINE ks_io_userdata* ks_io_top_state_from (ks_io* io, u32 index){
     if(io->states.length <= index) return NULL;
     return &io->states.data[io->states.length - 1 - index];
 }
 
-KS_INLINE bool ks_io_push_state(ks_io* io, ks_io_userdata userdata){
+KS_FORCEINLINE bool ks_io_push_state(ks_io* io, ks_io_userdata userdata){
     ks_vector_push(&io->states, userdata);
     return true;
 }
 
-KS_INLINE bool ks_io_pop_state(ks_io* io){
+KS_FORCEINLINE bool ks_io_pop_state(ks_io* io){
     ks_vector_pop(&io->states);
     return true;
 }
 
-KS_INLINE bool ks_io_property(ks_io* io, const ks_io_methods* methods,  ks_property prop, ks_io_serial_type serial_type){
+KS_FORCEINLINE bool ks_io_property(ks_io* io, const ks_io_methods* methods,  ks_property prop, ks_io_serial_type serial_type){
     u32 prop_length = methods->key(io, methods, prop.name,  true);
     if(prop_length == 0){
         return false;
@@ -147,12 +147,12 @@ KS_INLINE bool ks_io_property(ks_io* io, const ks_io_methods* methods,  ks_prope
     return true;
 }
 
-KS_INLINE bool ks_io_magic_number(ks_io* io, const ks_io_methods* methods, const char* data){
+KS_FORCEINLINE bool ks_io_magic_number(ks_io* io, const ks_io_methods* methods, const char* data){
     ks_value  val={.ptr={ .str=data }, .type = KS_VALUE_MAGIC_NUMBER};
     return methods->value(io, methods, val, 0);
 }
 
-KS_INLINE bool ks_io_array_begin(ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset, ks_io_serial_type serial_type){
+KS_FORCEINLINE bool ks_io_array_begin(ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset, ks_io_serial_type serial_type){
 
     if(serial_type == KS_IO_DESERIALIZER && !array->fixed_length){
         void* ptr = array->value.ptr.data;
@@ -195,7 +195,7 @@ KS_INLINE bool ks_io_array_begin(ks_io* io, const ks_io_methods* methods, ks_arr
     return true;
 }
 
-KS_INLINE bool ks_io_string(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
+KS_FORCEINLINE bool ks_io_string(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
     ks_string * str = ks_string_new();
     if(serial_type != KS_IO_DESERIALIZER){
         if(array.length == KS_STRING_UNKNOWN_LENGTH){
@@ -224,7 +224,7 @@ KS_INLINE bool ks_io_string(ks_io* io, const ks_io_methods* methods, ks_array_da
     return true;
 }
 
-KS_INLINE bool ks_io_array(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
+KS_FORCEINLINE bool ks_io_array(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
 
     if(!ks_io_array_begin(io, methods, &array, offset, serial_type)) return false;
 
@@ -244,11 +244,11 @@ bool ks_io_array_end(ks_io* io, const ks_io_methods* methods, ks_array_data* arr
     return true;
 }
 
-KS_INLINE bool ks_io_object(ks_io* io, const ks_io_methods* methods, ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
+KS_FORCEINLINE bool ks_io_object(ks_io* io, const ks_io_methods* methods, ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
     return methods->object(io, methods, obj, offset);
 }
 
-KS_INLINE bool ks_io_value(ks_io* io, const ks_io_methods* methods, ks_value value, u32 index, ks_io_serial_type serial_type){
+KS_FORCEINLINE bool ks_io_value(ks_io* io, const ks_io_methods* methods, ks_value value, u32 index, ks_io_serial_type serial_type){
     bool ret = false;
 
     switch (value.type) {
