@@ -32,7 +32,7 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_methods*methods, ks_pro
         }
         for(; i>=0; i--){
             p.value.ptr.u8v =  &out[i];
-            if(!ks_io_value(io, methods, p.value, 0, serial_type)) return false;
+            if(!ks_serializer_call(ks_io_value, io, methods, p.value, 0)) return false;
         }
 
         return true;
@@ -45,7 +45,11 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_methods*methods, ks_pro
         u32 out=0;
 
         do{
-            if(!ks_io_value(io, methods, p.value, 0, serial_type)) return false;
+            if(serial_type == KS_IO_DESERIALIZER){
+                if(!ks_deserializer_call(ks_io_value, io, methods, p.value, 0)) return false;
+            } else {
+                if(!ks_othertype_call(ks_io_value, io, methods, p.value, 0)) return false;
+            }
             out <<= 7;
             out |= in & 0x7f;
         }while(in >= 0x80);

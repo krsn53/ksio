@@ -155,6 +155,41 @@ bool            ks_io_value                     (ks_io* io, const ks_io_methods*
 
 ks_value    ks_val_ptr                              (void* ptr, ks_value_type type);
 
+
+
+#define ks_impl_func(func)  func ## _impl
+
+#define ks_serializer_func(func) ks_impl_func(func ## _serializer)
+#define ks_deserializer_func(func) ks_impl_func(func ## _deserializer)
+#define ks_othertype_func(func) ks_impl_func(func ## _othertype)
+
+#define ks_serializer_call(func, ...) ks_serializer_func(func) (__VA_ARGS__)
+#define ks_deserializer_call(func, ...) ks_deserializer_func(func) (__VA_ARGS__)
+#define ks_othertype_call(func, ...) ks_othertype_func(func)(__VA_ARGS__)
+
+#define ks_decl_branch(ret, func, args) \
+    ret ks_serializer_func(func) args ; \
+    ret ks_deserializer_func(func) args ; \
+    ret ks_othertype_func(func) args ;
+
+#define ks_impl_branch(ret, func, args, ...) \
+    ret ks_serializer_func(func) args { \
+        return ks_impl_func(func) (__VA_ARGS__ , KS_IO_SERIALIZER); \
+    } \
+    ret ks_deserializer_func(func) args { \
+        return ks_impl_func(func) (__VA_ARGS__ , KS_IO_DESERIALIZER); \
+    } \
+    ret ks_othertype_func(func) args { \
+        return ks_impl_func(func) (__VA_ARGS__ , KS_IO_OTHER_TYPE); \
+    } \
+
+
+ks_decl_branch(bool, ks_io_array_begin, (ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset));
+ks_decl_branch(bool, ks_io_string, (ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 index));
+ks_decl_branch(bool, ks_io_array, (ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 index));
+ks_decl_branch(bool, ks_io_value, (ks_io* io, const ks_io_methods* methods, ks_value value, u32 index));
+
+
 #define     ks_io_begin_with(io, methods, with, serial_type, prop)         ks_io_begin(io, & methods ## with, serial_type, prop)
 #define     ks_io_begin_other(io, methods, prop)                           ks_io_begin_with(io, methods, _impl, KS_IO_OTHER_TYPE, prop)
 #define     ks_io_begin_serialize(io, methods, prop)                       ks_io_begin_with(io, methods, _serializer, KS_IO_SERIALIZER, prop)

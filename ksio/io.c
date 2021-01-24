@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+
 ks_io* ks_io_new(){
     ks_io* ret = malloc(sizeof(ks_io));
     ks_vector_init(&ret->userdatas);
@@ -143,7 +144,7 @@ bool ks_io_magic_number(ks_io* io, const ks_io_methods* methods, const char* dat
     return methods->value(io, methods, val, 0);
 }
 
-KS_FORCEINLINE bool ks_io_array_begin(ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset, ks_io_serial_type serial_type){
+KS_FORCEINLINE static bool ks_impl_func(ks_io_array_begin)(ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset, ks_io_serial_type serial_type){
 
     if(serial_type == KS_IO_DESERIALIZER && !array->fixed_length){
         void* ptr = array->value.ptr.data;
@@ -186,7 +187,29 @@ KS_FORCEINLINE bool ks_io_array_begin(ks_io* io, const ks_io_methods* methods, k
     return true;
 }
 
-KS_FORCEINLINE bool ks_io_string(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
+ks_impl_branch(bool, ks_io_array_begin, (ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset), io, methods, array, offset)
+
+
+
+KS_FORCEINLINE bool ks_io_array_begin(ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset, ks_io_serial_type serial_type){
+    bool ret = false;
+    switch (serial_type) {
+    case KS_IO_SERIALIZER:
+        ret = ks_serializer_call(ks_io_array_begin, io, methods, array,  offset);
+        break;
+    case KS_IO_DESERIALIZER:
+        ret = ks_deserializer_call(ks_io_array_begin, io, methods, array,  offset);
+        break;
+    case KS_IO_OTHER_TYPE:
+        ret = ks_othertype_call(ks_io_array_begin, io, methods, array,  offset);
+        break;
+    }
+    return ret;
+}
+
+
+
+KS_FORCEINLINE static bool ks_impl_func(ks_io_string)(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
     ks_string * str = ks_string_new();
     if(serial_type != KS_IO_DESERIALIZER){
         if(array.length == KS_STRING_UNKNOWN_LENGTH){
@@ -215,7 +238,7 @@ KS_FORCEINLINE bool ks_io_string(ks_io* io, const ks_io_methods* methods, ks_arr
     return true;
 }
 
-KS_FORCEINLINE bool ks_io_array(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
+KS_FORCEINLINE static bool ks_impl_func(ks_io_array)(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type){
 
     if(!ks_io_array_begin(io, methods, &array, offset, serial_type)) return false;
 
@@ -239,39 +262,43 @@ bool ks_io_object(ks_io* io, const ks_io_methods* methods, ks_object_data obj, u
     return methods->object(io, methods, obj, offset);
 }
 
-KS_NOINLINE static bool ks_io_string_branch(ks_io* io, const ks_io_methods* methods, ks_array_data*array, u32 index, ks_io_serial_type serial_type){
+ks_impl_branch(bool, ks_io_string, (ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 index), io, methods, array, index)
+ks_impl_branch(bool, ks_io_array, (ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 index), io, methods, array, index)
+
+
+KS_INLINE bool ks_io_string(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 index, ks_io_serial_type serial_type){
     bool ret = false;
     switch (serial_type) {
     case KS_IO_SERIALIZER:
-        ret = ks_io_string(io, methods, *array, index, KS_IO_SERIALIZER);
+        ret = ks_serializer_call(ks_io_string, io, methods, array, index);
         break;
     case KS_IO_DESERIALIZER:
-        ret = ks_io_string(io, methods, *array, index, KS_IO_DESERIALIZER);
+        ret = ks_deserializer_call(ks_io_string, io, methods, array, index);
         break;
     case KS_IO_OTHER_TYPE:
-        ret = ks_io_string(io, methods, *array, index, KS_IO_OTHER_TYPE);
+        ret = ks_othertype_call(ks_io_string, io, methods, array, index);
         break;
     }
     return ret;
 }
 
-KS_NOINLINE static bool ks_io_array_branch(ks_io* io, const ks_io_methods* methods, ks_array_data*array, u32 index, ks_io_serial_type serial_type){
+KS_INLINE bool ks_io_array(ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 index, ks_io_serial_type serial_type){
     bool ret = false;
     switch (serial_type) {
     case KS_IO_SERIALIZER:
-        ret = ks_io_array(io, methods, *array, index, KS_IO_SERIALIZER);
+        ret = ks_serializer_call(ks_io_array, io, methods, array, index);
         break;
     case KS_IO_DESERIALIZER:
-        ret = ks_io_array(io, methods, *array, index, KS_IO_DESERIALIZER);
+        ret = ks_deserializer_call(ks_io_array, io, methods, array, index);
         break;
     case KS_IO_OTHER_TYPE:
-        ret = ks_io_array(io, methods, *array, index, KS_IO_OTHER_TYPE);
+        ret = ks_othertype_call(ks_io_array, io, methods, array, index);
         break;
     }
     return ret;
 }
 
-bool ks_io_value(ks_io* io, const ks_io_methods* methods, ks_value value, u32 index, ks_io_serial_type serial_type){
+KS_FORCEINLINE static bool ks_impl_func(ks_io_value)(ks_io* io, const ks_io_methods* methods, ks_value value, u32 index, ks_io_serial_type serial_type){
     bool ret = false;
 
     switch (value.type) {
@@ -288,10 +315,10 @@ bool ks_io_value(ks_io* io, const ks_io_methods* methods, ks_value value, u32 in
     case KS_VALUE_ARRAY:{
         ks_array_data* array = value.ptr.arr;
         if(array->value.type == KS_VALUE_STRING_ELEM) {
-            ret = ks_io_string_branch(io, methods, array, index, serial_type);
+            ret = ks_io_string(io, methods, *array, index, serial_type);
         }
         else {
-            ret = ks_io_array_branch(io, methods, array, index, serial_type);
+            ret = ks_io_array(io, methods, *array, index, serial_type);
         }
         break;
     }
@@ -304,22 +331,28 @@ bool ks_io_value(ks_io* io, const ks_io_methods* methods, ks_value value, u32 in
     return ret;
 }
 
+ks_impl_branch(bool, ks_io_value, (ks_io* io, const ks_io_methods* methods, ks_value value, u32 index), io, methods, value, index)
+
+KS_INLINE bool ks_io_value(ks_io* io, const ks_io_methods* methods, ks_value value, u32 index, ks_io_serial_type serial_type){
+    bool ret = false;
+    switch (serial_type) {
+    case KS_IO_SERIALIZER:
+        ret = ks_serializer_call(ks_io_value, io, methods, value, index);
+        break;
+    case KS_IO_DESERIALIZER:
+        ret = ks_deserializer_call(ks_io_value, io, methods, value, index);
+        break;
+    case KS_IO_OTHER_TYPE:
+        ret = ks_othertype_call(ks_io_value, io, methods, value, index);
+        break;
+    }
+    return ret;
+}
 
 bool ks_io_property(ks_io* io, const ks_io_methods* methods,  ks_property prop, ks_io_serial_type serial_type){
     u32 prop_length = methods->key(io, methods, prop.name,  true);
     if(prop_length == 0){
         return false;
     }
-    switch (serial_type) {
-    case KS_IO_SERIALIZER:
-        if(!ks_io_value(io, methods, prop.value, 0, KS_IO_SERIALIZER)) return false;
-        break;
-    case KS_IO_DESERIALIZER:
-        if(!ks_io_value(io, methods, prop.value, 0, KS_IO_DESERIALIZER)) return false;
-        break;
-    case KS_IO_OTHER_TYPE:
-        if(!ks_io_value(io, methods, prop.value, 0, KS_IO_OTHER_TYPE)) return false;
-        break;
-    }
-    return true;
+    return ks_io_value(io, methods, prop.value, 0, serial_type);
 }
