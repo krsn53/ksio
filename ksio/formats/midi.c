@@ -163,7 +163,7 @@ ks_io_begin_custom_func(ks_midi_track)
 
         ks_access(events) = realloc(ks_access(events), sizeof(ks_midi_event)*ks_access(num_events));
 
-        if(!ks_io_array_end(__IO, __METHODS, &arr, 0, __SERIAL_TYPE)) return false;
+        if(!ks_io_array_end(__IO, __METHODS, &arr, 0)) return false;
     }
 ks_io_end_custom_func(ks_midi_track)
 

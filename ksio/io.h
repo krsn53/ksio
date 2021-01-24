@@ -148,9 +148,9 @@ bool            ks_io_property                  (ks_io* io, const ks_io_methods*
 bool            ks_io_magic_number              (ks_io* io, const ks_io_methods* methods, const char* data);
 bool            ks_io_string                    (ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type);
 bool            ks_io_array_begin               (ks_io* io, const ks_io_methods* methods, ks_array_data* array,  u32 offset, ks_io_serial_type serial_type);
-bool            ks_io_array_end                 (ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset, ks_io_serial_type serial_type);
+bool            ks_io_array_end                 (ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset);
 bool            ks_io_array                     (ks_io* io, const ks_io_methods* methods, ks_array_data array, u32 offset, ks_io_serial_type serial_type);
-bool            ks_io_object                    (ks_io* io, const ks_io_methods* methods, ks_object_data obj, u32 offset, ks_io_serial_type serial_type);
+bool            ks_io_object                    (ks_io* io, const ks_io_methods* methods, ks_object_data obj, u32 offset);
 bool            ks_io_value                     (ks_io* io, const ks_io_methods* methods, ks_value value, u32 index, ks_io_serial_type serial_type);
 
 ks_value    ks_val_ptr                              (void* ptr, ks_value_type type);
@@ -184,25 +184,25 @@ ks_value    ks_val_ptr                              (void* ptr, ks_value_type ty
 #define ks_io_methods_decl_deserializer( name ) ks_io_methods_decl_with( name , _deserializer)
 
 #define ks_io_methods_impl_fn_add(func_name, name, add) \
-    bool ks_io_methods_func(key , func_name) (ks_io* io, const ks_io_methods* methods, const char* name, bool fixed) { \
+    KS_NOINLINE bool ks_io_methods_func(key , func_name) (ks_io* io, const ks_io_methods* methods, const char* name, bool fixed) { \
         return ks_io_methods_func(key, name ) (io, methods, name, fixed, add); \
     } \
-    bool ks_io_methods_func(value , func_name) (ks_io* io, const ks_io_methods* methods, ks_value value, u32 offset) { \
+    KS_NOINLINE bool ks_io_methods_func(value , func_name) (ks_io* io, const ks_io_methods* methods, ks_value value, u32 offset) { \
         return ks_io_methods_func(value, name ) (io, methods, value, offset, add);\
     } \
-    bool ks_io_methods_func(string , func_name) (ks_io* io, const ks_io_methods* methods, ks_array_data array, ks_string* str) { \
+    KS_NOINLINE bool ks_io_methods_func(string , func_name) (ks_io* io, const ks_io_methods* methods, ks_array_data array, ks_string* str) { \
         return ks_io_methods_func(string, name) (io, methods, array, str, add );\
     } \
-    bool ks_io_methods_func(array_begin , func_name) (ks_io* io, const ks_io_methods* methods,  ks_array_data arr) { \
+    KS_NOINLINE bool ks_io_methods_func(array_begin , func_name) (ks_io* io, const ks_io_methods* methods,  ks_array_data arr) { \
         return ks_io_methods_func(array_begin, name ) (io, methods, arr, add); \
     } \
-    bool ks_io_methods_func(array_elem , func_name) (ks_io* io,  const ks_io_methods* methods, ks_array_data arr, u32 index) { \
+    KS_NOINLINE bool ks_io_methods_func(array_elem , func_name) (ks_io* io,  const ks_io_methods* methods, ks_array_data arr, u32 index) { \
         return ks_io_methods_func(array_elem, name ) (io,  methods, arr,index, add); \
     } \
-    bool ks_io_methods_func(array_end , func_name) (ks_io* io, const ks_io_methods* methods,  ks_array_data arr) { \
+    KS_NOINLINE bool ks_io_methods_func(array_end , func_name) (ks_io* io, const ks_io_methods* methods,  ks_array_data arr) { \
         return ks_io_methods_func(array_end, name ) (io, methods, arr, add); \
     } \
-    bool ks_io_methods_func(object , func_name) (ks_io* io,  const ks_io_methods* methods, ks_object_data obj, u32 offset) { \
+    KS_NOINLINE bool ks_io_methods_func(object , func_name) (ks_io* io,  const ks_io_methods* methods, ks_object_data obj, u32 offset) { \
         return ks_io_methods_func(object, name ) (io, methods, obj, offset, add); \
     }
 

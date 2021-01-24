@@ -23,7 +23,7 @@ KS_INLINE char* ks_char_array_fill(char v, u32 length, char c[]){
 }
 
 
-KS_INLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u32 offset,  ks_io_serial_type serial_type){
+KS_FORCEINLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u32 offset,  ks_io_serial_type serial_type){
     if(serial_type == KS_IO_DESERIALIZER){
         u32 first = ks_string_first_not_of(io->str, io->seek, "\t\n ");
 
@@ -147,7 +147,7 @@ KS_INLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type type, u3
 }
 
 
-KS_INLINE u32 ks_io_prop_text(ks_io* io, const char* str, const char* delims, ks_io_serial_type serial_type){
+KS_FORCEINLINE u32 ks_io_prop_text(ks_io* io, const char* str, const char* delims, ks_io_serial_type serial_type){
     if(serial_type == KS_IO_DESERIALIZER){
         u32 first = ks_string_first_not_of(io->str, io->seek, "\t\n ");
         u32 prop_length = ks_string_first_of(io->str, io->seek + first, delims);
@@ -167,7 +167,7 @@ KS_INLINE u32 ks_io_prop_text(ks_io* io, const char* str, const char* delims, ks
     return 1;
 }
 
-KS_INLINE u32 ks_io_text_len(ks_io* io, u32 length, const char* str, ks_io_serial_type serial_type){
+KS_FORCEINLINE u32 ks_io_text_len(ks_io* io, u32 length, const char* str, ks_io_serial_type serial_type){
     if(serial_type == KS_IO_DESERIALIZER){
         u32 first = ks_string_first_not_of(io->str, io->seek, "\t\n ");
         bool ret = strncmp(io->str->data + io->seek + first, str, length) == 0;
@@ -185,11 +185,11 @@ KS_INLINE u32 ks_io_text_len(ks_io* io, u32 length, const char* str, ks_io_seria
     return 1;
 }
 
-KS_INLINE u32 ks_io_text(ks_io* io, const char* str, ks_io_serial_type serial_type){
+KS_FORCEINLINE u32 ks_io_text(ks_io* io, const char* str, ks_io_serial_type serial_type){
     return ks_io_text_len(io, strlen(str), str, serial_type);
 }
 
-KS_INLINE u32 ks_io_fixed_text(ks_io* io, const char* str, ks_io_serial_type serial_type){
+KS_FORCEINLINE u32 ks_io_fixed_text(ks_io* io, const char* str, ks_io_serial_type serial_type){
     if(!ks_io_text(io, str, serial_type)){
         ks_error("Unexcepted syntax, excepted \"%s\"", str);
         return false;
