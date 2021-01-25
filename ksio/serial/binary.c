@@ -196,7 +196,7 @@ KS_INLINE bool ks_io_array_end_binary(ks_io* io, const ks_io_methods* methods,  
 }
 
 KS_FORCEINLINE bool ks_io_object_binary(ks_io* io, const ks_io_methods* methods,  ks_object_data obj, u32 offset, bool swap_endian, ks_io_serial_type serial_type){
-    return (serial_type == KS_IO_DESERIALIZER ? obj.deserializer : obj.serializer)(io, methods, obj.data, offset);
+    return obj.func(io, methods, obj.data, offset);
 }
 
 KS_FORCEINLINE bool ks_io_key_binary_little_endian(ks_io* io, const ks_io_methods* methods, const char* name, bool fixed, ks_io_serial_type serial_type){

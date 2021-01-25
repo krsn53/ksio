@@ -318,9 +318,8 @@ KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_methods* methods,  ks_o
 
     io->indent++;
 
-    ks_object_func objfunc = serial_type == KS_IO_DESERIALIZER ? obj.deserializer : obj.serializer;
     if(serial_type == KS_IO_SERIALIZER){
-        if(! objfunc(io, methods, obj.data, offset)) return false;
+        if(! obj.func(io, methods, obj.data, offset)) return false;
         io->indent--;
         if(! (ks_io_print_indent(io,'\t', serial_type)&&
               ks_io_fixed_text(io, "}", serial_type)  &&
@@ -328,7 +327,7 @@ KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_methods* methods,  ks_o
               ks_io_print_endl(io, serial_type))) return false;
     } else {
         for(;;){
-            u32 readp = objfunc(io, methods, obj.data, offset);
+            u32 readp = obj.func(io, methods, obj.data, offset);
             if( ks_io_text(io, "}", serial_type)) break;
             // if unknown property skip
             if(readp == 0){

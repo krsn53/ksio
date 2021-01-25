@@ -137,7 +137,7 @@ KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_methods* methods,  k
         ks_io_print_endl(io, KS_IO_SERIALIZER);
         io->indent ++;
     #endif
-    bool ret = obj.other(io, methods, obj.data, offset);
+    bool ret = obj.func(io, methods, obj.data, offset);
     #if(KS_PRINT_DELETE_LOG)
         io->indent --;
         ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
