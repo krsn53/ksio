@@ -224,7 +224,7 @@ KS_FORCEINLINE static bool ks_impl_func(ks_io_array)(ks_io* io, const ks_io_meth
 
 KS_INLINE bool ks_io_array_end(ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset){
     if(! methods->array_end(io, methods, *array)) return false;
-    if(array->value.type == KS_VALUE_OBJECT){
+    if(array->value.type == KS_VALUE_OBJECT && !array->fixed_length){
         free(array->value.ptr.obj);
     }
 

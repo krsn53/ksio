@@ -385,7 +385,7 @@ ks_decl_branch(bool, ks_io_property,(ks_io* io, const ks_io_methods* methods,  k
 #define ks_arr_size(var)                                            (sizeof(ks_access(var))/ sizeof(*ks_access(var)))
 
 #define ks_val_arr_len_fixed(len, var, value, fixed)                ks_val_ptr(ks_arr_type(ks_array_data, ks_prop_arr_data_len(len,  var, value, fixed)), KS_VALUE_ARRAY)
-#define ks_prop_arr_len_fixed_as(name, len, var, value, fixed)      ks_prop_v(name, ks_val_arr_len_sparse_fixed( len, var, value, fixed) )
+#define ks_prop_arr_len_fixed_as(name, len, var, value, fixed)      ks_prop_v(name, ks_prop_arr_data_len( len, var, value, fixed) )
 
 #define ks_prop_arr_as(name, var, value)    ks_prop_v(name, ks_val_arr_len_fixed( ks_arr_size(var), var, value, true) )
 #define ks_prop_arr(name, value)            ks_prop_arr_as(#name, name, value)
