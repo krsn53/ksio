@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "types.h"
 
 #include <string.h>
@@ -22,3 +26,7 @@ int         ks_log          (int type, const char* message, ...);
 #define ks_info(...)        ks_log(KS_LOG_INFO , __VA_ARGS__ )
 #define ks_warning(...)     ks_log(KS_LOG_WARNING, __VA_ARGS__ )
 #define ks_error(...)       ks_log(KS_LOG_ERROR,  __VA_ARGS__ )
+
+#ifdef __cplusplus
+}
+#endif

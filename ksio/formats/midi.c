@@ -64,7 +64,7 @@ ks_io_begin_custom_func(ks_midi_event)
     ks_func_prop(ks_io_variable_length_number, ks_prop_u32(delta));
 
     if(__SERIAL_TYPE == KS_IO_DESERIALIZER && __INDEX == 0){
-        ks_io_push_userdata(io, (ks_io_userdata){ .val = -1 });
+        ks_io_push_userdata(io, (ks_io_userdata){ .v.val = -1 });
     }
 
     ks_u8(status);
@@ -107,8 +107,8 @@ ks_io_begin_custom_func(ks_midi_event)
         default:
             if(__SERIAL_TYPE == KS_IO_DESERIALIZER){
                 ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
-                if(ud->val == -1 && (ks_access(status) >> 4) == 0x9){
-                    ud->val = ks_access(status) & 0x0f;
+                if(ud->v.val == -1 && (ks_access(status) >> 4) == 0x9){
+                    ud->v.val = ks_access(status) & 0x0f;
                 }
             }
 
@@ -127,9 +127,9 @@ ks_io_begin_custom_func(ks_midi_event)
             default:
             {
                 ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
-                if(__SERIAL_TYPE == KS_IO_DESERIALIZER && ud->val != -1){
+                if(__SERIAL_TYPE == KS_IO_DESERIALIZER && ud->v.val != -1){
                     ks_access(message.data[0]) = ks_access(status);
-                    ks_access(status) = 0x90 + ud->val;
+                    ks_access(status) = 0x90 + ud->v.val;
                     ks_u8(message.data[1]);
                 }
                 else {

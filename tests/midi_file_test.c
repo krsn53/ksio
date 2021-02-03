@@ -23,12 +23,9 @@ int main(int argc, char** argv) {
     fwrite(io->str->data, 1, io->str->length, fp);
     fclose(fp);
 
+    bool res;
+
     ks_io_delete(io, midi, ks_midi_file);
-
-#if(KS_PRINT_DELETE_LOG)
-    printf("%s\n", io->str->data);
-#endif
-
     ks_io_delete(io, *midi2, ks_midi_file);
     free(midi2);
 

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include "./types.h"
 
@@ -37,3 +41,8 @@ void    ks_vector_free_base         (void** data);
 #define ks_vector_insert(stct, index, obj)                              ks_vector_insert_var((stct)->data, (stct)->length, (stct)->capacity, index, obj)
 #define ks_vector_remove(stct, index)                                   ks_vector_remove_var((stct)->data, (stct)->length, index)
 #define ks_vector_free(stct)                                            ks_vector_free_var((stct)->data)
+
+
+#ifdef __cplusplus
+}
+#endif

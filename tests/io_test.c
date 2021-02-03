@@ -114,15 +114,11 @@ int main ( void ){
 
         printf("--- binary big endian deserialize test ---\n");
         ks_io_deserialize_begin(io, binary_big_endian, test4, Test);
-        printf("result: test is equals test4 = %s\n", Test_equals(&test, &test4) ? "True" : "False");
+        printf("result: test is equals test4 = %s\n\n", Test_equals(&test, &test4) ? "True" : "False");
 
         ks_io_delete(io, test4, Test);
     }
 
-#if(KS_PRINT_DELETE_LOG)
-    printf("\n--- result of clean up with deleter test ---\n");
-    printf("%s\n", io->str->data);
-#endif
     ks_io_free(io);
 
     return 0;

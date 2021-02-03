@@ -29,7 +29,9 @@ void ks_io_reset(ks_io* io){
     io->indent = 0;
 }
 
-KS_NOINLINE bool ks_io_begin_base (ks_io*io, const ks_io_methods* methods, ks_property prop, ks_io_serial_type type){
+KS_NOINLINE bool ks_io_begin_base (ks_io*io, const ks_io_methods* methods, ks_object_data obj, ks_io_serial_type type){
+    ks_property prop ={.value= (ks_value){.type = KS_VALUE_OBJECT, .ptr.obj = &obj}};
+
     switch (type) {
     case KS_IO_DESERIALIZER:
         ks_vector_clear(&io->userdatas);
@@ -47,14 +49,18 @@ KS_NOINLINE bool ks_io_begin_base (ks_io*io, const ks_io_methods* methods, ks_pr
     return false;
 }
 
-bool ks_io_serialize_base(const ks_io_methods* methods, const char* file, ks_property prop){
+bool ks_io_serialize_base(const ks_io_methods* methods, const char* file, ks_object_data obj){
+    ks_property prop ={.value= (ks_value){.type = KS_VALUE_OBJECT, .ptr.obj = &obj}};
+
     ks_io* io = ks_io_new();
     bool ret = ks_io_value(io, methods, prop.value, 0, KS_IO_SERIALIZER) && ks_io_write_file(io, file);
     ks_io_free(io);
     return ret;
 }
 
-bool ks_io_deserialize_base(const ks_io_methods* methods, const char* file, ks_property prop){
+bool ks_io_deserialize_base(const ks_io_methods* methods, const char* file, ks_object_data obj){
+    ks_property prop ={.value= (ks_value){.type = KS_VALUE_OBJECT, .ptr.obj = &obj}};
+
     ks_io*io = ks_io_new();
     ks_io_read_file(io, file);
     bool ret =  ks_io_value(io, methods, prop.value, 0, KS_IO_DESERIALIZER);
@@ -62,7 +68,19 @@ bool ks_io_deserialize_base(const ks_io_methods* methods, const char* file, ks_p
     return  ret;
 }
 
-bool ks_io_other_base(ks_io* io, const ks_io_methods* methods, ks_property prop){
+bool ks_io_deserialize_data_base(const ks_io_methods* methods, u32 length, const char* data, ks_object_data obj){
+    ks_property prop ={.value= (ks_value){.type = KS_VALUE_OBJECT, .ptr.obj = &obj}};
+
+    ks_io*io = ks_io_new();
+    ks_io_read_string_len(io, length, data);
+    bool ret =  ks_io_value(io, methods, prop.value, 0, KS_IO_DESERIALIZER);
+    ks_io_free(io);
+    return  ret;
+}
+
+bool ks_io_other_base(ks_io* io, const ks_io_methods* methods, ks_object_data obj){
+    ks_property prop ={.value= (ks_value){.type = KS_VALUE_OBJECT, .ptr.obj = &obj}};
+
     ks_io_reset(io);
     return ks_io_value(io, methods, prop.value, 0, KS_IO_OTHER_TYPE);
 }
@@ -142,12 +160,9 @@ KS_FORCEINLINE static bool ks_impl_func(ks_io_array_begin)(ks_io* io, const ks_i
         void* ptr = array->value.ptr.data;
         if(array->value.type == KS_VALUE_OBJECT){
             ks_object_data *obj = ptr;
-            ks_object_data* object = malloc(sizeof(ks_object_data));
             ptr = obj->data;
             // TODO: add offset
-            *object = *obj;
-            object->data = *(void**)ptr = array->length == 0 ? NULL : calloc(array->length, array->elem_size);
-            array->value.ptr.obj = object;
+            obj->data = *(void**)ptr = array->length == 0 ? NULL : calloc(array->length, array->elem_size);
 
         } else if(array->value.type == KS_VALUE_ARRAY){
             // TODO
@@ -161,11 +176,9 @@ KS_FORCEINLINE static bool ks_impl_func(ks_io_array_begin)(ks_io* io, const ks_i
         void* ptr = array->value.ptr.data;
         if(array->value.type == KS_VALUE_OBJECT){
             ks_object_data *obj = ptr;
-            ks_object_data* object = malloc(sizeof(ks_object_data));
-            *object = *obj;
             // TODO : add offset
-            object->data = *(void**)obj->data;
-            array->value.ptr.obj = object;
+            obj->data = *(void**)obj->data;
+            array->value.ptr.obj = obj;
         } else if(array->value.type == KS_VALUE_ARRAY){
             // TODO
         } else {
@@ -224,9 +237,6 @@ KS_FORCEINLINE static bool ks_impl_func(ks_io_array)(ks_io* io, const ks_io_meth
 
 KS_INLINE bool ks_io_array_end(ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset){
     if(! methods->array_end(io, methods, *array)) return false;
-    if(array->value.type == KS_VALUE_OBJECT && !array->fixed_length){
-        free(array->value.ptr.obj);
-    }
 
     return true;
 }
@@ -285,3 +295,16 @@ KS_FORCEINLINE static bool ks_impl_func(ks_io_property)(ks_io* io, const ks_io_m
 }
 
 ks_impl_branch(bool,  ks_io_property, (ks_io* io, const ks_io_methods* methods, ks_property prop), io, methods, prop)
+
+
+
+
+KS_FORCEINLINE ks_object_data* ks_set_object_data( ks_object_data* data , ks_object_data value ){
+    *data = value;
+    return data;
+}
+
+KS_FORCEINLINE ks_array_data* ks_set_array_data( ks_array_data* data , ks_array_data value ){
+    *data = value;
+    return data;
+}

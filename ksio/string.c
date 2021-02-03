@@ -57,7 +57,7 @@ void ks_string_set_n(ks_string* str, u32 n, const char* ch){
     if(ch == NULL) return;
     ks_string_reserve(str, n+ 1);
     str->length = n;
-    strncpy(str->data, ch,n);
+    memcpy(str->data, ch,n);
     str->data[str->length] = 0;
 }
 

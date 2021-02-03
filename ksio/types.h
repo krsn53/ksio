@@ -1,4 +1,9 @@
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #if defined(_WIN32)
@@ -51,4 +56,9 @@ typedef uint8_t  u8;
 #endif
 #ifndef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif

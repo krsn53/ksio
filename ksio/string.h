@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "./types.h"
 
 typedef struct ks_string{
@@ -22,3 +26,7 @@ u32         ks_string_first_not_of  (const ks_string* str, u32 start, const char
 u32         ks_string_first_c_of    (const ks_string* str, u32 start, char c);
 u32         ks_string_first_of      (const ks_string* str, u32 start, const char * c);
 char*       ks_char_array_fill      (char v, u32 length, char c[]);
+
+#ifdef __cplusplus
+}
+#endif

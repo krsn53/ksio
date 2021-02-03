@@ -2,57 +2,32 @@
 #include "./clike.h"
 
 #if(KS_PRINT_DELETE_LOG)
-static KS_INLINE void print_pushed_property_name(ks_io* io){
+static KS_INLINE const char* print_pushed_property_name(ks_io* io, u32 len, char arr[]){
     if(io->states.length == 0){
-        ks_io_text(io, "\"root\"", KS_IO_SERIALIZER);
+        return  "root";
     }
     else {
-        ks_io_text(io, "\"", KS_IO_SERIALIZER);
-        ks_io_text(io, ks_io_top_state_from(io, 0)->str, KS_IO_SERIALIZER);
-        ks_io_text(io, "\"", KS_IO_SERIALIZER);
-    }
-}
+        u32 s=0;
+        for(i32 i=io->states.length-1; i>=0; i--){
 
-static KS_INLINE void print_type_value(ks_io* io, ks_value value){
-    switch (value.type) {
-    case KS_VALUE_U64:
-        ks_io_text(io,  "u64", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_U32:
-        ks_io_text(io,  "u32", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_U16:
-        ks_io_text(io,  "u16", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_U8:
-        ks_io_text(io,  "u8", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_I64:
-        ks_io_text(io,  "i64", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_I32:
-        ks_io_text(io,  "i32", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_I16:
-        ks_io_text(io,  "i16", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_I8:
-        ks_io_text(io,  "i8", KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_OBJECT:
-        ks_io_text(io,  value.ptr.obj->type, KS_IO_SERIALIZER);
-        break;
-    case KS_VALUE_ARRAY:
-    default:
-        // TODO
-        break;
+            if(ks_io_top_state_from(io, i)->type == KS_USER_DATA_STRING){
+                if(i != (i32)io->states.length-1){
+                    s += snprintf(arr+s, len-s, ".");
+                }
+                s += snprintf(arr+s, len-s, "%s", ks_io_top_state_from(io, i)->v.str );
+            }
+            else{
+                s += snprintf(arr+s, len-s, "[%ld]", ks_io_top_state_from(io, i)->v.val );
+            }
+        }
     }
+    return arr;
 }
 #endif
 
 KS_INLINE bool ks_io_key_deleter(ks_io* io, const ks_io_methods* methods, const char* name, bool fixed, ks_io_serial_type serial_type){
     #if(KS_PRINT_DELETE_LOG)
-        ks_io_push_state(io, (ks_io_userdata){.str = name});
+        ks_io_push_state(io, (ks_io_userdata){.type =KS_USER_DATA_STRING ,.v.str = name});
     #endif
     return true;
 }
@@ -62,11 +37,8 @@ KS_INLINE bool ks_io_string_deleter (ks_io* io, const ks_io_methods* methods, ks
     }
     #if(KS_PRINT_DELETE_LOG)
         if(!array.fixed_length && *array.value.ptr.vpp != NULL) {
-            ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
-            ks_io_text(io, "Pointer to a string ", KS_IO_SERIALIZER);
-            print_pushed_property_name(io);
-            ks_io_text(io, " deleted", KS_IO_SERIALIZER);
-            ks_io_print_endl(io, KS_IO_SERIALIZER);
+            char arr[256];
+            ks_info("Pointer to a string \"%s\" deleted", print_pushed_property_name(io, 256, arr));
         }
         ks_io_pop_state(io);
     #endif
@@ -79,24 +51,11 @@ KS_INLINE bool ks_io_value_deleter  (ks_io* io, const ks_io_methods* methods, ks
     return true;
 }
 KS_INLINE bool ks_io_array_begin_deleter  (ks_io* io, const ks_io_methods* methods,  ks_array_data arr,  ks_io_serial_type serial_type){
-    #if(KS_PRINT_DELETE_LOG)
-        ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
-        ks_io_text(io, "Enter to array(", KS_IO_SERIALIZER);
-        print_type_value(io, arr.value);
-        ks_io_text(io,  ") ", KS_IO_SERIALIZER);
-        print_pushed_property_name(io);
-        ks_io_text(io, ":", KS_IO_SERIALIZER);
-        ks_io_print_endl(io, KS_IO_SERIALIZER);
-
-        io->indent ++;
-    #endif
     return true;
 }
 KS_INLINE bool ks_io_array_elem_deleter(ks_io* io,  const ks_io_methods* methods, ks_array_data arr, u32 index, ks_io_serial_type serial_type){
     #if(KS_PRINT_DELETE_LOG)
-        char array_indexed [16];
-        snprintf(array_indexed, 10, "[%d]", index);
-        ks_io_push_state(io, (ks_io_userdata){.str=array_indexed});
+        ks_io_push_state(io, (ks_io_userdata){.type = KS_USERDATA_VALUE, .v.val = index});
     #endif
     return ks_io_value(io, methods, arr.value, index, serial_type);
 }
@@ -108,42 +67,21 @@ KS_INLINE bool ks_io_array_end_deleter (ks_io* io, const ks_io_methods* methods,
             free(arr.value.ptr.data);
         }
 
+        int i =0;
     }
     #if(KS_PRINT_DELETE_LOG)
-        io->indent --;
-
-
-        ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
-        ks_io_text(io, "Exit to array", KS_IO_SERIALIZER);
-
         if(!arr.fixed_length && arr.value.ptr.data != NULL) {
-            ks_io_text(io, " and Pointer to an array deleted", KS_IO_SERIALIZER);
+            char arr[256];
+            ks_info("Pointer to an array \"%s\" deleted", print_pushed_property_name(io, 256, arr));
         }
-
-        ks_io_print_endl(io, KS_IO_SERIALIZER);
 
         ks_io_pop_state(io);
     #endif
     return true;
 }
 KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_methods* methods,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
-    #if(KS_PRINT_DELETE_LOG)
-        ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
-        ks_io_text(io, "Enter to object(", KS_IO_SERIALIZER);
-        ks_io_text(io, obj.type, KS_IO_SERIALIZER);
-        ks_io_text(io, ") ", KS_IO_SERIALIZER);
-        print_pushed_property_name(io);
-        ks_io_text(io, " :", KS_IO_SERIALIZER);
-        ks_io_print_endl(io, KS_IO_SERIALIZER);
-        io->indent ++;
-    #endif
     bool ret = obj.func(io, methods, obj.data, offset);
-    #if(KS_PRINT_DELETE_LOG)
-        io->indent --;
-        ks_io_print_indent(io, '\t', KS_IO_SERIALIZER);
-        ks_io_text(io, "Exit to object", KS_IO_SERIALIZER);
-        ks_io_print_endl(io, KS_IO_SERIALIZER);
-    #endif
+    if(io->states.length != 0)ks_io_pop_state(io);
     return ret;
 }
 

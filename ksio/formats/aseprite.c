@@ -57,7 +57,7 @@ ks_io_end_custom_func(ks_aseprite_layer)
 ks_io_begin_custom_func(ks_aseprite_raw_cel)
     ks_u16(width);
     ks_u16(height);
-    switch (ks_io_top_userdata_from(io, 1)->val) {
+    switch (ks_io_top_userdata_from(io, 1)->v.val) {
         case 8:
             ks_arr_obj_len(pixels.indexed, ks_aseprite_indexed_color, ks_access(width)* ks_access(height));
             break;
@@ -76,7 +76,7 @@ ks_io_end_custom_func(ks_aseprite_raw_cel)
 ks_io_begin_custom_func(ks_aseprite_compressed_cel)
     ks_u16(width);
     ks_u16(height);
-    ks_arr_u8_len(data, ks_io_top_userdata_from(io, 0)->val -
+    ks_arr_u8_len(data, ks_io_top_userdata_from(io, 0)->v.val -
                   (sizeof(u32) + sizeof (u16) + //chunk
                     sizeof(u16) + sizeof(i16)*2 + sizeof(u8) + sizeof(u16) + sizeof(u8)*7 +  // cel chunk
                    sizeof(u16)*2) ); // width height
@@ -184,13 +184,13 @@ ks_io_begin_custom_func(ks_aseprite_slice_key)
     ks_u32(slice_width);
     ks_u32(slice_height);
 
-    if((ks_io_top_userdata_from(io, 0)->val & KS_ASEPRITE_9_PATCHES_SLICE) != 0){
+    if((ks_io_top_userdata_from(io, 0)->v.val & KS_ASEPRITE_9_PATCHES_SLICE) != 0){
         ks_i32(center_x);
         ks_i32(center_y);
         ks_u32(center_width);
         ks_u32(center_height);
     }
-    if((ks_io_top_userdata_from(io, 0)->val & KS_ASEPRITE_HAS_PIVOT_INFO) != 0){
+    if((ks_io_top_userdata_from(io, 0)->v.val & KS_ASEPRITE_HAS_PIVOT_INFO) != 0){
         ks_i32(pivot_x);
         ks_i32(pivot_y);
     }
@@ -201,14 +201,14 @@ ks_io_begin_custom_func(ks_aseprite_slice)
     ks_u32(flags); // 1: 9 pathes slice, 2: has pivot ks_information
     ks_u32(reserved);
     ks_obj(name, ks_aseprite_string);
-    ks_io_push_userdata(io, (ks_io_userdata){.val = ks_access(flags)});
+    ks_io_push_userdata(io, (ks_io_userdata){.v.val = ks_access(flags)});
     ks_arr_obj_len(keys, ks_aseprite_slice_key, ks_access(num_keys));
     ks_io_pop_userdata(io);
 ks_io_end_custom_func(ks_aseprite_slice)
 
 ks_io_begin_custom_func(ks_aseprite_chunk)
     ks_u32(size);
-    ks_io_push_userdata(io, (ks_io_userdata){.val = ks_access(size)});
+    ks_io_push_userdata(io, (ks_io_userdata){.v.val = ks_access(size)});
     ks_u16(type);
     switch (ks_access(type)) {
         case 0x0004:
@@ -277,7 +277,7 @@ ks_io_begin_custom_func(ks_aseprite_file)
     ks_u16(grid_width);
     ks_u16(grid_height);
     ks_arr_u8(for_future); // set to zero
-    ks_io_push_userdata(io, (ks_io_userdata){.val = ks_access(color_depth)});
+    ks_io_push_userdata(io, (ks_io_userdata){.v.val = ks_access(color_depth)});
     ks_obj(frame, ks_aseprite_frame);
     ks_io_pop_userdata(io);
 ks_io_end_custom_func(ks_aseprite_file)
