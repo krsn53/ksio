@@ -1,5 +1,10 @@
 #pragma once
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../io.h"
 
 
@@ -54,3 +59,8 @@ void                    ks_midi_tracks_free                         (u32 num_tra
 ks_midi_event*          ks_midi_events_new                          (u32 num_events);
 void                    ks_midi_events_free                         (u32 num_events, ks_midi_event* events);
 
+
+
+#ifdef __cplusplus
+}
+#endif

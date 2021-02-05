@@ -4,6 +4,11 @@
 
 #pragma once
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../io.h"
 
 enum ks_aseprite_header_flags{
@@ -75,6 +80,20 @@ enum ks_aseprite_userdata_flags{
 enum ks_aseprite_slice_flags{
     KS_ASEPRITE_9_PATCHES_SLICE     = 1,
     KS_ASEPRITE_HAS_PIVOT_INFO      = 2,
+};
+
+enum ks_aseprite_chunk_types{
+    KS_ASEPRITE_OLD_PALETTE_CHUNK_1 = 0x0004,
+    KS_ASEPRITE_OLD_PALETTE_CHUNK_2 = 0x0011,
+    KS_ASEPRITE_LAYER_CHUNK = 0x2004,
+    KS_ASEPRITE_CEL_CHUNK = 0x2005,
+    KS_ASEPRITE_CEL_EXTRA_CHUNK = 0x2006,
+    KS_ASEPRITE_PROFILE_CHUNK = 0x2007,
+    KS_ASEPRITE_PATH_CHUNK = 0x2017,
+    KS_ASEPRITE_TAGS_CHUNK = 0x2018,
+    KS_ASEPRITE_PALETTE_CHUNK = 0x2019,
+    KS_ASEPRITE_USERDATA_CHUNK = 0x2020,
+    KS_ASEPRITE_SLICE_CHUNK = 0x2022,
 };
 
 typedef struct ks_aseprite_string{
@@ -294,7 +313,7 @@ typedef struct ks_aseprite_frame{
 typedef struct ks_aseprite_file{
     u32                 file_size;
     // u16              magic number 0xA5E0
-    u16                 frames;
+    u16                 num_frames;
     u16                 width;
     u16                 height;
     u16                 color_depth; // 32bpp = RGBA, 16bpp = Grayscale, 8bpp = Indexed
@@ -312,7 +331,7 @@ typedef struct ks_aseprite_file{
     u16                 grid_width; // zero if there is no grid, grid size is 16x16 on default
     u16                 grid_height;
     u8                  for_future[84]; // set to zero
-    ks_aseprite_frame   frame;
+    ks_aseprite_frame   *frames;
 }ks_aseprite_file;
 
 ks_io_decl_custom_func(ks_aseprite_string);
@@ -339,3 +358,8 @@ ks_io_decl_custom_func(ks_aseprite_slice);
 ks_io_decl_custom_func(ks_aseprite_chunk);
 ks_io_decl_custom_func(ks_aseprite_frame);
 ks_io_decl_custom_func(ks_aseprite_file);
+
+
+#ifdef __cplusplus
+}
+#endif

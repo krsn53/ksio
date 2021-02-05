@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../io.h"
 
 // binary utils
@@ -34,8 +38,10 @@ bool        ks_io_array_elem_binary_big_endian      (ks_io* io,  const ks_io_met
 bool        ks_io_array_end_binary_big_endian       (ks_io* io, const ks_io_methods* methods,  ks_array_data arr,ks_io_serial_type serial_type);
 bool        ks_io_object_binary_big_endian          (ks_io* io, const ks_io_methods* methods,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type);
 
-
-
-
 ks_io_methods_decl_ext_rw(binary_little_endian)
 ks_io_methods_decl_ext_rw(binary_big_endian)
+
+
+#ifdef __cplusplus
+}
+#endif

@@ -305,7 +305,9 @@ ks_decl_branch(bool, ks_io_property,(ks_io* io, const ks_io_methods* methods,  k
     ks_object_data __OBJECT_DATA; \
     ks_array_data __ARRAY_DATA; \
     type * __OBJECT = (type*)((char*)obj + offset*sizeof(type)); \
-    (void)__INDEX;
+    (void)__INDEX; \
+    (void)__OBJECT_DATA; \
+    (void)__ARRAY_DATA;
 
 #define ks_end_props }
 

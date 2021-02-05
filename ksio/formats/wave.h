@@ -1,6 +1,12 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../io.h"
+
+
 
 
 typedef struct ks_wave_file{
@@ -25,3 +31,7 @@ typedef struct ks_wave_file{
 
 ks_io_decl_custom_func(ks_wave_file);
 
+
+#ifdef __cplusplus
+}
+#endif

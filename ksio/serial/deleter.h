@@ -1,5 +1,10 @@
 #pragma once
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../io.h"
 
 #ifdef NDEBUG
@@ -20,3 +25,9 @@ ks_io_methods_decl_ext_other(deleter);
 
 
 #define     ks_io_delete(io, prop, type)            ks_io_other(io, deleter, prop, type)
+
+
+
+#ifdef __cplusplus
+}
+#endif

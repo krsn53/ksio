@@ -1,5 +1,10 @@
 #pragma once
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../io.h"
 
 // text format utils
@@ -23,3 +28,9 @@ bool        ks_io_object_clike                  (ks_io* io, const ks_io_methods*
 
 
 ks_io_methods_decl_ext_rw(clike)
+
+
+
+#ifdef __cplusplus
+}
+#endif

@@ -211,35 +211,35 @@ ks_io_begin_custom_func(ks_aseprite_chunk)
     ks_io_push_userdata(io, (ks_io_userdata){.v.val = ks_access(size)});
     ks_u16(type);
     switch (ks_access(type)) {
-        case 0x0004:
-        case 0x0011:
+        case KS_ASEPRITE_OLD_PALETTE_CHUNK_1:
+        case KS_ASEPRITE_OLD_PALETTE_CHUNK_2:
             ks_obj(data.old_palette, ks_aseprite_old_palette);
             break;
-        case 0x2004:
+        case KS_ASEPRITE_LAYER_CHUNK:
             ks_obj(data.layer, ks_aseprite_layer);
             break;
-        case 0x2005:
+        case KS_ASEPRITE_CEL_CHUNK:
             ks_obj(data.cel, ks_aseprite_cel);
             break;
-        case 0x2006:
+        case KS_ASEPRITE_CEL_EXTRA_CHUNK:
             ks_obj(data.cel_extra, ks_aseprite_cel_extra);
             break;
-        case 0x2007:
+        case KS_ASEPRITE_PROFILE_CHUNK:
             ks_obj(data.profile, ks_aseprite_profile);
             break;
-        case 0x2017:
+        case KS_ASEPRITE_PATH_CHUNK:
             ks_obj(data.path, ks_aseprite_path);
             break;
-        case 0x2018:
+        case KS_ASEPRITE_TAGS_CHUNK:
             ks_obj(data.tags, ks_aseprite_tags);
             break;
-        case 0x2019:
+        case KS_ASEPRITE_PALETTE_CHUNK:
             ks_obj(data.palette, ks_aseprite_palette);
             break;
-        case 0x2020:
+        case KS_ASEPRITE_USERDATA_CHUNK:
             ks_obj(data.userdata, ks_aseprite_userdata);
             break;
-        case 0x2022:
+        case KS_ASEPRITE_SLICE_CHUNK:
             ks_obj(data.slice, ks_aseprite_slice);
             break;
     }
@@ -259,7 +259,7 @@ ks_io_end_custom_func(ks_aseprite_frame)
 ks_io_begin_custom_func(ks_aseprite_file)
     ks_u32(file_size);
     ks_magic_number(((const char[3]){0xe0, 0xa5, 0x00}));
-    ks_u16(frames);
+    ks_u16(num_frames);
     ks_u16(width);
     ks_u16(height);
     ks_u16(color_depth);
@@ -278,6 +278,6 @@ ks_io_begin_custom_func(ks_aseprite_file)
     ks_u16(grid_height);
     ks_arr_u8(for_future); // set to zero
     ks_io_push_userdata(io, (ks_io_userdata){.v.val = ks_access(color_depth)});
-    ks_obj(frame, ks_aseprite_frame);
+    ks_arr_obj_len(frames, ks_aseprite_frame, ks_access(num_frames));
     ks_io_pop_userdata(io);
 ks_io_end_custom_func(ks_aseprite_file)
