@@ -137,10 +137,10 @@ ks_io_end_custom_func(ks_aseprite_path)
 
 ks_io_begin_custom_func(ks_aseprite_tag)
     ks_u16(from_frame);
-    ks_u32(to_frame);
+    ks_u16(to_frame);
     ks_u8(loop_animation_direction);
     ks_arr_u8(for_future);
-    ks_arr_u8(rgb_tag);
+    ks_arr_u8(rgb_value);
     ks_u8(extra);
     ks_obj(name, ks_aseprite_string);
 ks_io_end_custom_func(ks_aseprite_tag)

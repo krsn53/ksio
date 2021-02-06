@@ -215,10 +215,10 @@ typedef struct ks_aseprite_path{
 
 typedef struct ks_aseprite_tag{
     u16                 from_frame;
-    u32                 to_frame;
+    u16                 to_frame;
     u8                  loop_animation_direction; // forward, reverse, ping-pong
     u8                  for_future[8];
-    u8                  rgb_tag[3];
+    u8                  rgb_value[3];
     u8                  extra; // zero
     ks_aseprite_string  name;
 }ks_aseprite_tag;
