@@ -347,4 +347,4 @@ KS_INLINE bool ks_io_object_clike(ks_io* io, const ks_io_methods* methods,  ks_o
     return true;
 }
 
-ks_io_methods_impl_rw(clike)
+ks_io_methods_impl_rw(clike, KS_SERIAL_TEXT)

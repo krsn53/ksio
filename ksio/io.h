@@ -71,6 +71,15 @@ typedef enum ks_value_type{
     KS_VALUE_ARRAY,
 }ks_value_type ;
 
+
+typedef enum ks_io_method_type{
+    KS_SERIAL_TEXT,
+    KS_SERIAL_BINARY,
+    KS_SERIAL_OTHERS,
+}ks_io_method_type;
+
+
+
 typedef struct ks_io_methods {
     bool        (* key)            (ks_io*, const ks_io_methods*, const char*, bool);
     bool        (* value)          (ks_io*, const ks_io_methods*, ks_value , u32);
@@ -79,6 +88,7 @@ typedef struct ks_io_methods {
     bool        (* array_elem)     (ks_io*,const ks_io_methods*,  ks_array_data, u32 );
     bool        (* array_end)      (ks_io*, const ks_io_methods*, ks_array_data);
     bool        (* object)         (ks_io*, const ks_io_methods*, ks_object_data, u32);
+    ks_io_method_type type;
 }ks_io_methods;
 
 typedef u32     (* ks_object_func)  (ks_io*, const ks_io_methods*, void*,  u32);
@@ -242,7 +252,7 @@ ks_decl_branch(bool, ks_io_property,(ks_io* io, const ks_io_methods* methods,  k
     ks_io_methods_decl_ext_base(name ## _serializer) \
     ks_io_methods_decl_ext_base(name ## _deserializer)
 
-#define ks_io_methods_decl(name)\
+#define ks_io_methods_decl(name, type)\
     const ks_io_methods name = { \
         ks_io_methods_func(key , name), \
         ks_io_methods_func(value , name), \
@@ -251,11 +261,12 @@ ks_decl_branch(bool, ks_io_property,(ks_io* io, const ks_io_methods* methods,  k
         ks_io_methods_func(array_elem , name), \
         ks_io_methods_func(array_end , name), \
         ks_io_methods_func(object , name), \
+        type, \
     };
-#define ks_io_methods_decl_with(name, with)  ks_io_methods_decl(name ## with)
+#define ks_io_methods_decl_with(name, with, type)  ks_io_methods_decl(name ## with, type)
 
-#define ks_io_methods_decl_serializer( name ) ks_io_methods_decl_with( name ,  _serializer)
-#define ks_io_methods_decl_deserializer( name ) ks_io_methods_decl_with( name , _deserializer)
+#define ks_io_methods_decl_serializer( name, type ) ks_io_methods_decl_with( name ,  _serializer, type)
+#define ks_io_methods_decl_deserializer( name, type ) ks_io_methods_decl_with( name , _deserializer, type)
 
 #define ks_io_methods_impl_fn_add(func_name, name, add) \
     KS_NOINLINE bool ks_io_methods_func(key , func_name) (ks_io* io, const ks_io_methods* methods, const char* name, bool fixed) { \
@@ -285,15 +296,15 @@ ks_decl_branch(bool, ks_io_property,(ks_io* io, const ks_io_methods* methods,  k
 #define ks_io_methods_impl_serializer( name ) ks_io_methods_impl_with_add( name, _serializer, KS_IO_SERIALIZER )
 #define ks_io_methods_impl_deserializer( name ) ks_io_methods_impl_with_add( name, _deserializer, KS_IO_DESERIALIZER )
 
-#define ks_io_methods_impl_other(name) \
+#define ks_io_methods_impl_other(name, type) \
     ks_io_methods_impl_with_add( name, _impl, KS_IO_OTHER_TYPE ) \
-    ks_io_methods_decl_with(name, _impl)
+    ks_io_methods_decl_with(name, _impl, type)
 
-#define ks_io_methods_impl_rw(name) \
+#define ks_io_methods_impl_rw(name, type) \
     ks_io_methods_impl_serializer(name) \
     ks_io_methods_impl_deserializer(name) \
-    ks_io_methods_decl_serializer(name) \
-    ks_io_methods_decl_deserializer(name)
+    ks_io_methods_decl_serializer(name, type) \
+    ks_io_methods_decl_deserializer(name, type)
 
 #define ks_begin_props(io, methods, serialize, offset, type, obj) \
     u32 __RETURN = 0; \

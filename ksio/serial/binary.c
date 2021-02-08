@@ -245,5 +245,5 @@ KS_FORCEINLINE bool ks_io_object_binary_big_endian(ks_io* io, const ks_io_method
 
 
 
-ks_io_methods_impl_rw(binary_little_endian)
-ks_io_methods_impl_rw(binary_big_endian)
+ks_io_methods_impl_rw(binary_little_endian, KS_SERIAL_BINARY)
+ks_io_methods_impl_rw(binary_big_endian, KS_SERIAL_BINARY)

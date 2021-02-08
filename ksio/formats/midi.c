@@ -7,8 +7,7 @@
 #include "../serial/deleter.h"
 
 bool ks_io_variable_length_number(ks_io* io, const ks_io_methods*methods, ks_property prop, ks_io_serial_type serial_type){
-    if(methods != &binary_big_endian_serializer && methods != & binary_big_endian_deserializer &&
-            methods != &binary_little_endian_serializer && methods != &binary_little_endian_deserializer) {
+    if(methods->type != KS_SERIAL_BINARY) {
         return ks_io_property(io, methods, prop, serial_type);
     }
 

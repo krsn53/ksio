@@ -85,4 +85,4 @@ KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_methods* methods,  k
     return ret;
 }
 
-ks_io_methods_impl_other(deleter);
+ks_io_methods_impl_other(deleter, KS_SERIAL_OTHERS);
