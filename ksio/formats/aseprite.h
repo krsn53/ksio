@@ -210,7 +210,7 @@ typedef struct ks_aseprite_mask{
 
 // never used.
 typedef struct ks_aseprite_path{
-
+    u8                  pass;
 } ks_aseprite_path;
 
 typedef struct ks_aseprite_tag{
