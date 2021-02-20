@@ -62,10 +62,6 @@ bool ks_io_variable_length_number(ks_io* io, const ks_io_methods*methods, ks_pro
 ks_io_begin_custom_func(ks_midi_event)
     ks_func_prop(ks_io_variable_length_number, ks_prop_u32(delta));
 
-    if(__SERIAL_TYPE == KS_IO_DESERIALIZER && __INDEX == 0){
-        ks_io_push_userdata(io, (ks_io_userdata){ .v.val = -1 });
-    }
-
     ks_u8(status);
     switch (ks_access(status)) {
         //SysEx
@@ -83,12 +79,6 @@ ks_io_begin_custom_func(ks_midi_event)
             } else {
                  ks_arr_u8_len(message.meta.data, ks_access(message.meta.length));
             }
-            if(__SERIAL_TYPE == KS_IO_DESERIALIZER){
-                if(ks_access(message.meta.type) == 0x2f){
-                    ks_io_pop_userdata(io);
-                }
-            }
-
             break;
        //midi event
         case 0xf1:
@@ -103,13 +93,12 @@ ks_io_begin_custom_func(ks_midi_event)
         case 0xfe:
             ks_arr_u8(message.data);
             break;
-        default:
-            if(__SERIAL_TYPE == KS_IO_DESERIALIZER){
-                ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
-                if(ud->v.val == -1 && (ks_access(status) >> 4) == 0x9){
-                    ud->v.val = ks_access(status) & 0x0f;
-                }
+        default:{
+            ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
+            if(ks_access(status) >= 0x80 && ks_access(status) <= 0xef){
+                ud->v.val = ks_access(status);
             }
+
 
             switch (ks_access(status) >> 4) {
             case 0xc:
@@ -126,17 +115,29 @@ ks_io_begin_custom_func(ks_midi_event)
             default:
             {
                 ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
-                if(__SERIAL_TYPE == KS_IO_DESERIALIZER && ud->v.val != -1){
+                if(ud->v.val != -1){
                     ks_access(message.data[0]) = ks_access(status);
-                    ks_access(status) = 0x90 + ud->v.val;
-                    ks_u8(message.data[1]);
+                    ks_access(status) = ud->v.val;
+                    switch (ks_access(status) >> 4) {
+                    case 0xc:
+                    case 0xd:
+                        break;
+                    case 0x8:
+                    case 0x9:
+                    case 0xa:
+                    case 0xb:
+                    case 0xe:
+                         ks_u8(message.data[1]);
+                        break;
+                    }
                 }
                 else {
-                    ks_error("Detected invalid status bit : %d", ks_access(status));
+                    ks_error("Detected invalid status bit : %d on event %d", ks_access(status), __INDEX);
                     return false;
                 }
             }
             }
+        }
     }
 ks_io_end_custom_func(ks_midi_event)
 
@@ -153,6 +154,7 @@ ks_io_begin_custom_func(ks_midi_track)
 
         if(!ks_io_array_begin(__IO, __METHODS, &arr, 0, __SERIAL_TYPE)) return false;
 
+        ks_io_push_userdata(io, (ks_io_userdata){ .v.val = -1 });
         for(;;){
             __METHODS->array_elem(__IO, __METHODS, arr, ks_access(num_events));
             if(ks_access(events)[ks_access(num_events)].status == 0xff &&
@@ -162,7 +164,7 @@ ks_io_begin_custom_func(ks_midi_track)
             }
             ks_access(num_events) ++;
         }
-
+        ks_io_pop_userdata(io);
 
         ks_access(events) = realloc(ks_access(events), sizeof(ks_midi_event)*ks_access(num_events));
 
