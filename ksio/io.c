@@ -119,32 +119,32 @@ void ks_io_read_string(ks_io* io, const char* data){
 }
 
 
-KS_INLINE ks_io_userdata* ks_io_top_userdata_from (ks_io* io, u32 index){
+ks_io_userdata* ks_io_top_userdata_from (ks_io* io, u32 index){
     if(io->userdatas.length <= index) return NULL;
     return &io->userdatas.data[io->userdatas.length - 1 - index];
 }
 
-KS_INLINE bool ks_io_push_userdata (ks_io* io, ks_io_userdata userdata){
+bool ks_io_push_userdata (ks_io* io, ks_io_userdata userdata){
     ks_vector_push(&io->userdatas, userdata);
     return true;
 }
 
-KS_INLINE bool ks_io_pop_userdata(ks_io* io){
+bool ks_io_pop_userdata(ks_io* io){
     ks_vector_pop(&io->userdatas);
     return true;
 }
 
-KS_INLINE ks_io_userdata* ks_io_top_state_from (ks_io* io, u32 index){
+ks_io_userdata* ks_io_top_state_from (ks_io* io, u32 index){
     if(io->states.length <= index) return NULL;
     return &io->states.data[io->states.length - 1 - index];
 }
 
-KS_INLINE bool ks_io_push_state(ks_io* io, ks_io_userdata userdata){
+bool ks_io_push_state(ks_io* io, ks_io_userdata userdata){
     ks_vector_push(&io->states, userdata);
     return true;
 }
 
-KS_INLINE bool ks_io_pop_state(ks_io* io){
+bool ks_io_pop_state(ks_io* io){
     ks_vector_pop(&io->states);
     return true;
 }
@@ -299,12 +299,12 @@ ks_impl_branch(bool,  ks_io_property, (ks_io* io, const ks_io_methods* methods, 
 
 
 
-KS_FORCEINLINE ks_object_data* ks_set_object_data( ks_object_data* data , ks_object_data value ){
+ks_object_data* ks_set_object_data( ks_object_data* data , ks_object_data value ){
     *data = value;
     return data;
 }
 
-KS_FORCEINLINE ks_array_data* ks_set_array_data( ks_array_data* data , ks_array_data value ){
+ks_array_data* ks_set_array_data( ks_array_data* data , ks_array_data value ){
     *data = value;
     return data;
 }

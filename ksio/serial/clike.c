@@ -30,7 +30,7 @@ KS_FORCEINLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type typ
         u64 p;
         u32 read;
 
-        int ret = sscanf(io->str->data + io->seek + first,"%ld", &p);
+        int ret = sscanf(io->str->data + io->seek + first,"%lld", &p);
         read  = ks_string_first_not_of(io->str, io->seek + first, "0123456789");
         if((ret != 1 && io->seek + first + read < io->str->length) || io->seek + first + read >= io->str->length) {
             ks_error("Failed to read value");

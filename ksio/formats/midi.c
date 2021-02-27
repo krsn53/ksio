@@ -94,11 +94,12 @@ ks_io_begin_custom_func(ks_midi_event)
             ks_arr_u8(message.data);
             break;
         default:{
-            ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
-            if(ks_access(status) >= 0x80 && ks_access(status) <= 0xef){
-                ud->v.val = ks_access(status);
+            if(__SERIAL_TYPE == KS_IO_DESERIALIZER){
+                ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
+                if(ks_access(status) >= 0x80 && ks_access(status) <= 0xef){
+                    ud->v.val = ks_access(status);
+                }
             }
-
 
             switch (ks_access(status) >> 4) {
             case 0xc:
@@ -115,7 +116,7 @@ ks_io_begin_custom_func(ks_midi_event)
             default:
             {
                 ks_io_userdata* ud = ks_io_top_userdata_from(io, 0);
-                if(ud->v.val != -1){
+                if(__SERIAL_TYPE == KS_IO_DESERIALIZER && ud->v.val != -1){
                     ks_access(message.data[0]) = ks_access(status);
                     ks_access(status) = ud->v.val;
                     switch (ks_access(status) >> 4) {

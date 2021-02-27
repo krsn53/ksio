@@ -17,7 +17,7 @@ static KS_INLINE const char* print_pushed_property_name(ks_io* io, u32 len, char
                 s += snprintf(arr+s, len-s, "%s", ks_io_top_state_from(io, i)->v.str );
             }
             else{
-                s += snprintf(arr+s, len-s, "[%ld]", ks_io_top_state_from(io, i)->v.val );
+                s += snprintf(arr+s, len-s, "[%lld]", ks_io_top_state_from(io, i)->v.val );
             }
         }
     }

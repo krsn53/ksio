@@ -62,7 +62,7 @@ void ks_string_set_n(ks_string* str, u32 n, const char* ch){
 }
 
 
-KS_INLINE u32 ks_string_first_not_of(const ks_string* str, u32 start, const char *c){
+u32 ks_string_first_not_of(const ks_string* str, u32 start, const char *c){
     u32 len = str->length;
     for(u32 i=start; i< len; i++){
         const char* b = c;
@@ -76,7 +76,7 @@ KS_INLINE u32 ks_string_first_not_of(const ks_string* str, u32 start, const char
     return str->length-start;
 }
 
-KS_INLINE u32 ks_string_first_c_of(const ks_string* str, u32 start, char c){
+u32 ks_string_first_c_of(const ks_string* str, u32 start, char c){
     u32 len = str->length;
     for(u32 i=start; i< len; i++){
             char now = str->data[i];
@@ -85,7 +85,7 @@ KS_INLINE u32 ks_string_first_c_of(const ks_string* str, u32 start, char c){
     return str->length-start;
 }
 
-KS_INLINE u32 ks_string_first_of(const ks_string* str, u32 start, const char * c){
+u32 ks_string_first_of(const ks_string* str, u32 start, const char * c){
     u32 len = str->length;
     for(u32 i=start; i< len; i++){
         const char* b = c;
