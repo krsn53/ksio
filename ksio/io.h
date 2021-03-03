@@ -166,9 +166,11 @@ bool            ks_io_magic_number              (ks_io* io, const ks_io_methods*
 bool            ks_io_array_end                 (ks_io* io, const ks_io_methods* methods, ks_array_data* array, u32 offset);
 bool            ks_io_object                    (ks_io* io, const ks_io_methods* methods, ks_object_data obj, u32 offset);
 
-
+#ifdef __cplusplus
+#define ks_type(type) type
+#else
 #define ks_type(type) (type)
-
+#endif
 #define ks_obj_data_serializer(prop, type) ks_type(ks_object_data){#type, ks_io_custom_func_serializer(type), &prop}
 #define ks_obj_data_deserializer(prop, type) ks_type(ks_object_data){#type, ks_io_custom_func_deserializer(type), &prop}
 #define ks_obj_data_other(prop, type) ks_type(ks_object_data){#type, ks_io_custom_func_other(type), &prop}
