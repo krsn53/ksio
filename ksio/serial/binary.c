@@ -59,7 +59,6 @@ KS_FORCEINLINE bool ks_io_value_bin(ks_io* io, u32 length, char* c, bool swap_en
             ks_string_add_n(io->str, length, c);
         }
         else {
-            ks_string_reserve(io->str, io->str->length + length);
             for(i32 i=length-1; i>= 0; i--){
                 ks_string_add_c(io->str, c[i]);
             }
@@ -185,6 +184,10 @@ KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_methods* methods, ks_va
 }
 
 KS_INLINE bool ks_io_array_begin_binary(ks_io* io, const ks_io_methods* methods,  ks_array_data arr, bool swap_endian, ks_io_serial_type serial_type){
+    if(serial_type == KS_IO_SERIALIZER){
+        ks_vector_reserve(io->str, io->str->capacity + arr.elem_size*arr.length);
+    }
+
     return true;
 }
 

@@ -31,7 +31,9 @@ void ks_string_add_c(ks_string* str, char ch){
 }
 
 void ks_string_add_n(ks_string* str, u32 n, const char* ch){
-    ks_string_reserve(str, str->length + n + 1);
+    u32 new_cap = str->capacity;
+    while(new_cap < str->length + n + 1) new_cap *= 2;
+    ks_string_reserve(str, new_cap);
     str->data[str->length + n] = 0;
     ks_vector_push_range(str, n, ch);
 }
