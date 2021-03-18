@@ -63,7 +63,7 @@ void ks_vector_insert_base(void**data, u32 type_size, u32*length, u32* capacity,
         ks_vector_reserve_base(data, type_size, capacity, *capacity * 2);
     }
     ks_vector_resize_base(data, type_size, length, capacity, *length +1);
-    for(u32 i=*length-1; i>index; i--){
+    for(unsigned i=*length-1; i>index; i--){
         memcpy(*(char**)data + i*type_size, *(char**)data + (i-1)*type_size, type_size);
     }
     memcpy(*(char**)data + index*type_size, obj, type_size);
@@ -72,7 +72,7 @@ void ks_vector_insert_base(void**data, u32 type_size, u32*length, u32* capacity,
 void ks_vector_remove_base(void** data, u32 type_size, u32*length, u32 index){
     if(*length <= index) return;
 
-    for(u32 i=index ;i<*length; i++){
+    for(unsigned i=index ;i<*length; i++){
         memcpy(*(char**)data + i*type_size, *(char**)data + (i+1)*type_size, type_size);
     }
 

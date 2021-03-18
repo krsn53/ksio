@@ -228,7 +228,7 @@ KS_FORCEINLINE static bool ks_impl_func(ks_io_array)(ks_io* io, const ks_io_meth
 
     if(!ks_io_array_begin(io, methods, &array, offset, serial_type)) return false;
 
-    for(u32 i=0, e=array.length; i< e; i++){
+    for(unsigned i=0, e=array.length; i< e; i++){
         if(! methods->array_elem(io, methods, array, i)) return false;
     }
 

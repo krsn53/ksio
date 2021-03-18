@@ -252,7 +252,7 @@ ks_midi_file* ks_midi_file_conbine_tracks(ks_midi_file* file){
 
     u32 num_events = 0;
     u32 length =0;
-    for(u32 i=0; i<file->num_tracks; i++){
+    for(unsigned i=0; i<file->num_tracks; i++){
         length += file->tracks[i].length;
         num_events += file->tracks[i].num_events;
     }
@@ -266,8 +266,8 @@ ks_midi_file* ks_midi_file_conbine_tracks(ks_midi_file* file){
     u32 e=0;
     u32 end_time=0;
 
-    for(u32 i=0; i<file->num_tracks; i++){
-        for(u32 j=0; j<file->tracks[i].num_events; j++){
+    for(unsigned i=0; i<file->num_tracks; i++){
+        for(unsigned j=0; j<file->tracks[i].num_events; j++){
             //end of track
             if(file->tracks[i].events[j].status == 0xff &&
             file->tracks[i].events[j].message.meta.type == 0x2f){
@@ -301,7 +301,7 @@ ks_midi_file* ks_midi_file_conbine_tracks(ks_midi_file* file){
         ret->tracks[0].length -= old_bits - new_bits;
     }
 
-    for(u32 i=1; i<ret->tracks[0].num_events; i++){
+    for(unsigned i=1; i<ret->tracks[0].num_events; i++){
         u32 old = ret->tracks[0].events[i].delta;
         u32 new;
         i32 old_bits = calc_delta_bits(old);

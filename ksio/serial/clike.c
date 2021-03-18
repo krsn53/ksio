@@ -15,7 +15,7 @@ KS_INLINE bool ks_io_print_endl(ks_io* io, ks_io_serial_type serial_type){
 }
 
 KS_INLINE char* ks_char_array_fill(char v, u32 length, char c[]){
-    for(u32 i=0; i<length-1; i++){
+    for(unsigned i=0; i<length-1; i++){
         c[i] = v;
     }
     c[length-1] = 0;
