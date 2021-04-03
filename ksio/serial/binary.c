@@ -121,6 +121,13 @@ KS_INLINE bool ks_io_value_binary(ks_io* io, const ks_io_methods* methods, ks_va
 
         break;
     }
+    case KS_VALUE_FLOAT:{
+        union {
+            float* u;
+            char(* c)[sizeof(float)];
+        } v = {.u = value.ptr.fv + offset};
+        return ks_io_value_bin(io, sizeof(*v.c), *v.c, swap_endian, serial_type);
+    }
     case KS_VALUE_U64:{
         union {
             u64* u;

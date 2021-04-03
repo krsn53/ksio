@@ -253,6 +253,7 @@ KS_FORCEINLINE static bool ks_impl_func(ks_io_value)(ks_io* io, const ks_io_meth
     bool ret = false;
 
     switch (value.type) {
+    case KS_VALUE_FLOAT:
     case KS_VALUE_U8:
     case KS_VALUE_U16:
     case KS_VALUE_U32:

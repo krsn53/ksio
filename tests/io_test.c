@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 typedef struct Test{
+    float f;
     u8 u8;
     u16 u16;
     u32 u32;
@@ -20,6 +21,7 @@ typedef struct Test{
 }Test;
 
 static Test test ={
+    .f = 0.5f,
     .u8 = 1,
     .u16 = 2,
     .u32 = 3,
@@ -34,7 +36,8 @@ static Test test ={
 };
 
 bool Test_equals(const Test *t1, const Test *t2){
-    bool ret = t1->u8 == t2->u8 &&
+    bool ret = t1->f == t2->f &&
+            t1->u8 == t2->u8 &&
             t1->u16 == t2->u16 &&
             t1->u32 == t2->u32 &&
             t1->u64 == t2->u64 &&
@@ -56,6 +59,7 @@ ks_io_begin_custom_func(Test)
     ks_u16(u16);
     ks_u32(u32);
     ks_u64(u64);
+    ks_float(f);
     ks_arr_u8(arr);
     ks_u32(len_arr);
     ks_arr_u16_len(arr_len, ks_access(len_arr));

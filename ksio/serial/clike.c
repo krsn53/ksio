@@ -28,16 +28,32 @@ KS_FORCEINLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type typ
         u32 first = ks_string_first_not_of(io->str, io->seek, "\t\n ");
 
         u64 p;
+        float pf;
         u32 read;
 
-        int ret = sscanf(io->str->data + io->seek + first,"%lld", &p);
-        read  = ks_string_first_not_of(io->str, io->seek + first, "0123456789");
+
+        int ret;
+        if(type == KS_VALUE_FLOAT){
+            ret = sscanf(io->str->data + io->seek + first,"%f", &pf);
+            read  = ks_string_first_not_of(io->str, io->seek + first, "0123456789.f");
+        } else {
+            ret = sscanf(io->str->data + io->seek + first,"%ld", &p);
+            read  = ks_string_first_not_of(io->str, io->seek + first, "0123456789");
+        }
+
         if((ret != 1 && io->seek + first + read < io->str->length) || io->seek + first + read >= io->str->length) {
             ks_error("Failed to read value");
             return 0;
         }
 
         switch (type) {
+        case KS_VALUE_FLOAT:
+        {
+            float *u = v.fv;
+            u+= offset;
+            *u=pf;
+            break;
+        }
         case KS_VALUE_U64:
         {
             u64 *u = v.u64v;
@@ -104,8 +120,16 @@ KS_FORCEINLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type typ
         char s[10];
 
         int p;
+        float pf;
 
         switch (type) {
+        case KS_VALUE_FLOAT:
+        {
+            float *u = v.fv;
+            u+= offset;
+            pf = *u;
+            break;
+        }
         case KS_VALUE_U64:
         {
             u64 *u = v.u64v;
@@ -134,14 +158,46 @@ KS_FORCEINLINE u32 ks_io_value_text(ks_io* io, ks_value_ptr v, ks_value_type typ
             p = *u;
             break;
         }
+        case KS_VALUE_I64:
+        {
+            i64 *u = v.i64v;
+            u+= offset;
+            p = *u;
+            break;
+        }
+        case KS_VALUE_I32:
+        {
+            i32 *u = v.i32v;
+            u+= offset;
+            p = *u;
+            break;
+        }
+        case KS_VALUE_I16:
+        {
+            i16 *u = v.i16v;
+            u+= offset;
+            p = *u;
+            break;
+        }
+        case KS_VALUE_I8:
+        {
+            i8* u = v.i8v;
+            u+= offset;
+            p = *u;
+            break;
+        }
         default:
             p=0;
             break;
         }
 
-        snprintf(s, 10, "%d", p);
-        ks_string_add(io->str, s);
+        if(type == KS_VALUE_FLOAT){
+            snprintf(s, 10, "%ff", pf);
+        } else {
+            snprintf(s, 10, "%d", p);
+        }
 
+        ks_string_add(io->str, s);
     }
     return 1;
 }
@@ -254,6 +310,9 @@ KS_INLINE bool ks_io_array_begin_clike(ks_io* io, const ks_io_methods* methods, 
     if(!arr.fixed_length){
         ks_io_fixed_text(io, "(", serial_type);
         switch (arr.value.type) {
+        case KS_VALUE_FLOAT:
+            ks_io_fixed_text(io, "float", serial_type);
+            break;
         case KS_VALUE_U8:
             ks_io_fixed_text(io, "u8", serial_type);
             break;

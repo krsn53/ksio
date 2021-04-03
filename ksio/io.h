@@ -58,6 +58,7 @@ typedef enum ks_io_sereal_type{
 
 typedef enum ks_value_type{
     KS_VALUE_MAGIC_NUMBER,
+    KS_VALUE_FLOAT,
     KS_VALUE_U64,
     KS_VALUE_U32,
     KS_VALUE_U16,
@@ -103,6 +104,7 @@ typedef union ks_value_ptr{
     i16                     *i16v;
     i32                     *i32v;
     i64                     *i64v;
+    float                   *fv;
     const char              *str;
     char                    *ch;
     ks_array_data           *arr;
@@ -368,6 +370,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 
 #define ks_val_str_elem(elem)               ks_val(elem, KS_VALUE_STRING_ELEM)
 
+#define ks_val_float(elem)                  ks_val(elem, KS_VALUE_FLOAT)
+
 #define ks_val_u64(elem)                    ks_val(elem, KS_VALUE_U64)
 #define ks_val_u32(elem)                    ks_val(elem, KS_VALUE_U32)
 #define ks_val_u16(elem)                    ks_val(elem, KS_VALUE_U16)
@@ -377,6 +381,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 #define ks_val_i32(elem)                    ks_val(elem, KS_VALUE_I32)
 #define ks_val_i16(elem)                    ks_val(elem, KS_VALUE_I16)
 #define ks_val_i8(elem)                     ks_val(elem, KS_VALUE_I8)
+
+#define ks_prop_float_as(name, var)         ks_prop_f(name, var, KS_VALUE_FLOAT)
 
 #define ks_prop_u64_as(name, var)           ks_prop_f(name, var, KS_VALUE_U64)
 #define ks_prop_u32_as(name, var)           ks_prop_f(name, var, KS_VALUE_U32)
@@ -389,6 +395,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 #define ks_prop_i8_as(name, var)            ks_prop_f(name, var, KS_VALUE_I8)
 
 #define ks_prop_obj_as(name, type, var)     ks_prop_v(name, ks_val_obj( var, type ))
+
+#define ks_prop_float(name)                 ks_prop_float_as(#name, name)
 
 #define ks_prop_u64(name)                   ks_prop_u64_as(#name, name)
 #define ks_prop_u32(name)                   ks_prop_u32_as(#name, name)
@@ -429,6 +437,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 #define ks_prop_arr_obj(name, type)         ks_prop_arr(name, ks_val_obj(name, type))
 #define ks_prop_str(name)                   ks_prop_arr(name, ks_val_str_elem(name))
 
+#define ks_prop_arr_float(mame)             ks_prop_arr(name, ks_val_float(name))
+
 #define ks_prop_arr_u64(name)               ks_prop_arr(name, ks_val_u64(name))
 #define ks_prop_arr_u32(name)               ks_prop_arr(name, ks_val_u32(name))
 #define ks_prop_arr_u16(name)               ks_prop_arr(name, ks_val_u16(name))
@@ -444,6 +454,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 #define ks_prop_arr_obj_len(name, type, len)    ks_prop_arr_len(name, len, ks_val_obj(name, type))
 #define ks_prop_str_len(name, len)              ks_prop_arr_len(name, len, ks_val_str_elem(name))
 
+#define ks_prop_arr_float_len(name, len)        ks_prop_arr_len(name, len, ks_val_float(name))
+
 #define ks_prop_arr_u64_len(name, len)          ks_prop_arr_len(name, len, ks_val_u64(name))
 #define ks_prop_arr_u32_len(name, len)          ks_prop_arr_len(name, len, ks_val_u32(name))
 #define ks_prop_arr_u16_len(name, len)          ks_prop_arr_len(name, len, ks_val_u16(name))
@@ -457,6 +469,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 
 #define ks_p(prop)                          __RETURN += ks_io_property(__IO, __METHODS, prop, __SERIAL_TYPE) ? 1 : 0
 
+#define ks_float(name)                      ks_p(ks_prop_float(name))
+
 #define ks_u64(name)                        ks_p(ks_prop_u64(name))
 #define ks_u32(name)                        ks_p(ks_prop_u32(name))
 #define ks_u16(name)                        ks_p(ks_prop_u16(name))
@@ -468,6 +482,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 #define ks_i8(name)                         ks_p(ks_prop_i8(name))
 
 #define ks_obj(name, type)                  ks_p(ks_prop_obj(name, type))
+
+#define ks_arr_float(name)                  ks_p(ks_prop_arr_float(name))
 
 #define ks_arr_u64(name)                    ks_p(ks_prop_arr_u64(name))
 #define ks_arr_u32(name)                    ks_p(ks_prop_arr_u32(name))
@@ -481,6 +497,8 @@ ks_array_data* ks_set_array_data( ks_array_data* data, ks_array_data value);
 
 #define ks_arr_obj(name, type)              ks_p(ks_prop_arr_obj(name, type))
 #define ks_str(name)                        ks_p(ks_prop_str(name))
+
+#define ks_arr_float_len(name, len)         ks_p(ks_prop_arr_float_len(name, len))
 
 #define ks_arr_u64_len(name, len)           ks_p(ks_prop_arr_u64_len(name, len))
 #define ks_arr_u32_len(name, len)           ks_p(ks_prop_arr_u32_len(name, len))
