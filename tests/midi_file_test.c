@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
 
     bool res;
 
-    ks_io_delete(io, midi, ks_midi_file);
-    ks_io_delete(io, *midi2, ks_midi_file);
+    res = ks_io_delete(midi, ks_midi_file);
+    res = res && ks_io_delete(*midi2, ks_midi_file);
     free(midi2);
 
 

@@ -17,7 +17,7 @@ static KS_INLINE const char* print_pushed_property_name(ks_io* io, u32 len, char
                 s += snprintf(arr+s, len-s, "%s", ks_io_top_state_from(io, i)->v.str );
             }
             else{
-                s += snprintf(arr+s, len-s, "[%lld]", ks_io_top_state_from(io, i)->v.val );
+                s += snprintf(arr+s, len-s, "[%ld]", ks_io_top_state_from(io, i)->v.val );
             }
         }
     }
@@ -82,6 +82,13 @@ KS_INLINE bool ks_io_array_end_deleter (ks_io* io, const ks_io_methods* methods,
 KS_INLINE bool ks_io_object_deleter (ks_io* io, const ks_io_methods* methods,  ks_object_data obj, u32 offset, ks_io_serial_type serial_type){
     bool ret = obj.func(io, methods, obj.data, offset);
     if(io->states.length != 0)ks_io_pop_state(io);
+    return ret;
+}
+
+bool ks_io_delete_base(const ks_io_methods* methods, ks_object_data obj){
+    ks_io* io = ks_io_new();
+    bool ret = ks_io_other_base(io, methods, obj);
+    ks_io_free(io);
     return ret;
 }
 

@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 
     printf("%s\n", io->str->data);
 
-    ks_io_delete(io, ase, ks_aseprite_file);
+    ks_io_delete(ase, ks_aseprite_file);
 
     ks_io_free(io);
     return 0;

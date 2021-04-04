@@ -23,8 +23,9 @@ bool        ks_io_object_deleter                  (ks_io* io, const ks_io_method
 
 ks_io_methods_decl_ext_other(deleter);
 
+bool        ks_io_delete_base(const ks_io_methods* methods, ks_object_data obj);
 
-#define     ks_io_delete(io, prop, type)            ks_io_other(io, deleter, prop, type)
+#define     ks_io_delete(prop, type)                ks_io_delete_base( &deleter_impl, ks_obj_data_other(prop, type))
 
 
 
