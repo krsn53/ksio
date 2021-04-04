@@ -223,6 +223,9 @@ ks_decl_branch(bool, ks_io_array, (ks_io* io, const ks_io_methods* methods, ks_a
 ks_decl_branch(bool, ks_io_value, (ks_io* io, const ks_io_methods* methods, ks_value value, u32 index));
 ks_decl_branch(bool, ks_io_property,(ks_io* io, const ks_io_methods* methods,  ks_property prop))
 
+ks_decl_branch(bool, ks_io_binary_as_array, (ks_io* io, const ks_io_methods* methods, void* data, u32 data_size));
+ks_decl_branch(i64, ks_io_bit_value, (ks_io* io, const ks_io_methods* methods, i64 val, const char* prop_name));
+
 #define ks_inline_branch(func, serial_type, ...) \
     ((serial_type == KS_IO_SERIALIZER) ? \
         ks_serializer_call(func, __VA_ARGS__) : \
@@ -230,17 +233,29 @@ ks_decl_branch(bool, ks_io_property,(ks_io* io, const ks_io_methods* methods,  k
         ks_deserializer_call(func, __VA_ARGS__) : \
     ks_othertype_call(func, __VA_ARGS__)))
 
+#define ks_bit_val(prop) { \
+    i64 ret = ks_inline_branch(ks_io_bit_value, __SERIAL_TYPE, __IO, __METHODS, ks_access(prop), #prop); \
+    if(ret != -1) { \
+        ks_access(prop) = ret; \
+        __RETURN ++; \
+    } \
+}
+
+#define ks_io_binary_as_array(io, methods, data, data_size, serial_type) ks_inline_branch(ks_io_binary_as_array, serial_type, io, methods, data, data_size)
+
 #define ks_io_array_begin(io, methods, array, offset, serial_type) ks_inline_branch(ks_io_array_begin, serial_type, io, methods, array, offset)
 #define ks_io_string(io, methods, array, index, serial_type) ks_inline_branch(ks_io_string, serial_type, io, methods, array, index)
 #define ks_io_array(io, methods, array, index, serial_type) ks_inline_branch(ks_io_array, serial_type, io, methods, array, index)
 #define ks_io_value(io, methods, value, index, serial_type) ks_inline_branch(ks_io_value, serial_type, io, methods, value, index)
 #define ks_io_property(io, methods, prop, serial_type) ks_inline_branch(ks_io_property, serial_type, io, methods, prop)
 
+
+
 //------------------------------------------------------------------------------------------------------------------------
 // begin dity macro for serialize ~~~
 //------------------------------------------------------------------------------------------------------------------------
 
-#define ks_val_ptr(ptr, type)  (ks_type(ks_value){ (type), { ks_type(u8*)(ptr) } })
+#define ks_val_ptr(ptr, type)  (ks_type(ks_value){ (type), { (u8*)(ptr) } })
 #define ks_prop_v(name, value) (ks_type(ks_property){name, value})
 
 #define     ks_io_begin_with(io, methods, with, serial_type, prop)         ks_io_begin(io, & methods ## with, serial_type, prop)

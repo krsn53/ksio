@@ -309,3 +309,19 @@ ks_array_data* ks_set_array_data( ks_array_data* data , ks_array_data value ){
     *data = value;
     return data;
 }
+
+KS_FORCEINLINE static bool ks_impl_func(ks_io_binary_as_array)(ks_io* io, const ks_io_methods* methods, void* data, u32 data_size, ks_io_serial_type serial_type){
+    ks_value v = ks_val_ptr(data, KS_VALUE_U8);
+    ks_array_data arr = ks_prop_arr_data_size_len(data_size, 1, v, true);
+    return ks_io_array(io, methods, arr, 0, serial_type);
+}
+
+ks_impl_branch(bool, ks_io_binary_as_array, (ks_io* io, const ks_io_methods* methods, void* data, u32 data_size), io, methods, data, data_size)
+
+KS_FORCEINLINE static i64 ks_impl_func(ks_io_bit_value)(ks_io* io, const ks_io_methods* methods, i64 val, const char* prop_name, ks_io_serial_type serial_type){
+    ks_value v = ks_val_ptr(&val, KS_VALUE_I64);
+    ks_property p = ks_prop_v(prop_name, v);
+    return ks_io_property(io, methods, p, serial_type) ? val : -1;
+}
+
+ks_impl_branch(i64, ks_io_bit_value, (ks_io* io, const ks_io_methods* methods,  i64 val, const char* prop_name), io, methods, val, prop_name)
